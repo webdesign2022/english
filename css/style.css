@@ -100,13 +100,23 @@ header {
 
 /* RWD - 手機版樣式 (Max-width 992px) */
 @media (max-width: 992px) {
-    /* 顯示漢堡按鈕，隱藏桌面選單 */
-    .menu-toggle {
-        display: block;
+    /* 確保 Logo 與漢堡圖標在手機版時分散兩側 */
+    .navbar {
+        /* 在手機尺寸下強制使用 space-between，避免被其他 flex 屬性覆蓋 */
+        justify-content: space-between !important; 
     }
     
-    /* 由於 navbar 已經設定 space-between，menu-toggle 會被推到右邊 */
-
+    /* 顯示漢堡按鈕 */
+    .menu-toggle {
+        display: block;
+        /* *** 關鍵修正：將 menu-toggle 的順序設置在最後，確保它在右側 *** */
+        order: 2; 
+        
+        /* 由於 .nav-links 區塊在手機上是 display: none， */
+        /* .navbar 內只剩下 .logo 和 .menu-toggle 參與 flex 排列， */
+        /* 搭配 space-between 即可讓 Logo 在左、漢堡在右。 */
+    }
+    
     .nav-links {
         display: none; /* 預設隱藏選單 */
         position: absolute;
@@ -125,6 +135,7 @@ header {
         }
     }
     
+    /* ... 其他手機版樣式保持不變 ... */
     .nav-links a {
         padding: 12px 20px;
         width: 100%;
