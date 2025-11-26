@@ -1,0 +1,898 @@
+/* ==================================== */
+/* 01. 基礎設置與變量 */
+/* ==================================== */
+
+/* 引入 Google Fonts - Noto Sans TC (思源黑體) */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+:root {
+    --primary-blue: #004a99; /* 主藍色 (深，專業) */
+    --secondary-blue: #007bff; /* 次藍色 (強調) */
+    --accent-red: #dc3545; /* 重點色 (詢問單) */
+    --light-gray: #f8f9fa; /* 淺背景 */
+    --white: #ffffff;
+    --text-dark: #212529; /* 深文字 */
+    --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--light-gray);
+    color: var(--text-dark);
+    line-height: 1.7;
+    font-weight: 400;
+}
+
+a {
+    text-decoration: none;
+    color: var(--secondary-blue);
+    transition: color 0.3s, opacity 0.3s;
+}
+
+a:hover {
+    color: var(--primary-blue);
+    opacity: 0.9;
+}
+
+/* ==================================== */
+/* 02. 導航欄 (Header) */
+/* ==================================== */
+
+header {
+    background-color: var(--white);
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 15px 40px; /* 增加左右間距 */
+}
+
+.logo {
+    /* 移除文字相關樣式 */
+    /* font-size: 1.8em;
+    font-weight: 700;
+    color: var(--primary-blue); */
+    
+    /* 確保 Logo 容器為區塊元素，方便控制圖片 */
+    display: block; 
+    line-height: 0; /* 移除基線對齊可能造成的空隙 */
+}
+
+/* 新增對 Logo 圖片的控制 */
+.logo img {
+    height: 40px; /* 設定 Logo 圖片的高度，您可以根據需求調整 */
+    width: auto;
+    display: block;
+}
+
+/* RWD 調整：在小螢幕上可以稍微縮小 Logo */
+@media (max-width: 768px) {
+    .logo img {
+        height: 35px;
+    }
+}
+.nav-links {
+    display: flex;
+    align-items: center;
+}
+
+.nav-links a {
+    color: var(--text-dark);
+    margin-left: 30px;
+    font-size: 1em;
+    padding: 5px 0;
+    font-weight: 500;
+    border-bottom: 2px solid transparent; /* 導航下劃線效果 */
+}
+
+.nav-links a:hover,
+.nav-links a.active { /* active 類別用於標記當前頁面 */
+    color: var(--secondary-blue);
+    border-bottom: 2px solid var(--secondary-blue);
+}
+
+.inquiry-btn {
+    background-color: var(--accent-red);
+    color: var(--white) !important;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 700;
+    margin-left: 30px;
+    transition: background-color 0.3s, transform 0.2s;
+    border: 2px solid var(--accent-red);
+    line-height: 1;
+}
+
+.inquiry-btn:hover {
+    background-color: #c82333;
+    border-color: #c82333;
+    color: var(--white) !important;
+    transform: translateY(-2px);
+}
+
+/* ==================================== */
+/* 03. 內容區塊通用樣式 */
+/* ==================================== */
+
+.section {
+    padding: 80px 40px;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.content-section {
+    padding: 60px 40px;
+    max-width: 1000px;
+    margin: 40px auto;
+    background-color: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--shadow-light);
+    min-height: 70vh;
+}
+
+.section-title {
+    text-align: center;
+    color: var(--primary-blue);
+    margin-bottom: 50px;
+    font-size: 2.8em;
+    font-weight: 700;
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background-color: var(--secondary-blue);
+    margin: 15px auto 0;
+    border-radius: 2px;
+}
+
+.section-subtitle {
+    color: var(--primary-blue);
+    margin-top: 40px;
+    border-bottom: 2px solid var(--secondary-blue);
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+    font-size: 1.8em;
+    font-weight: 600;
+}
+
+
+/* ==================================== */
+/* 04. 首頁 Hero 區塊 */
+/* ==================================== */
+
+.hero {
+    background: linear-gradient(rgba(0, 74, 153, 0.85), rgba(0, 74, 153, 0.85)), url('placeholder-hero-bg.jpg') center/cover no-repeat;
+    min-height: 550px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: var(--white);
+}
+
+.hero-content h1 {
+    font-size: 3.5em;
+    margin-bottom: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.hero-content p {
+    font-size: 1.5em;
+    margin-bottom: 40px;
+    font-weight: 300;
+}
+
+.cta-button {
+    background-color: var(--accent-red);
+    color: var(--white);
+    padding: 15px 40px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1.2em;
+    font-weight: 700;
+    transition: background-color 0.3s, transform 0.2s;
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.5);
+}
+
+.cta-button:hover {
+    background-color: #c82333;
+    transform: scale(1.05);
+}
+
+/* 產品頁次要按鈕 (專利/合作廠商) */
+.secondary-cta {
+    display: inline-block;
+    padding: 12px 25px;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: 600;
+    margin: 0 15px;
+    transition: background-color 0.3s, transform 0.2s;
+    border: 1px solid;
+}
+
+.cta-patent {
+    background-color: var(--white);
+    color: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+.cta-patent:hover {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    border-color: var(--primary-blue);
+    transform: translateY(-2px);
+}
+
+.cta-partner {
+    background-color: var(--white);
+    color: #28a745; /* 綠色 */
+    border-color: #28a745;
+}
+.cta-partner:hover {
+    background-color: #28a745;
+    color: var(--white);
+    border-color: #28a745;
+    transform: translateY(-2px);
+}
+
+
+/* ==================================== */
+/* 05. 卡片與網格 (Features, Products, Events) */
+/* ==================================== */
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.card {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-light);
+    text-align: center;
+    transition: box-shadow 0.3s, transform 0.3s;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-5px);
+}
+
+.card .icon {
+    font-size: 3.5em;
+    color: var(--secondary-blue);
+    margin-bottom: 15px;
+}
+
+.card h3 {
+    color: var(--primary-blue);
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+/* 產品/應用卡片 */
+.product-item, .application-card {
+    background-color: var(--white);
+    border-radius: 10px;
+    box-shadow: var(--shadow-light);
+    padding: 30px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.product-item img {
+    max-width: 40%;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-details h3 {
+    color: var(--primary-blue);
+    font-size: 2em;
+    margin-top: 0;
+}
+
+/* 規格表 (適用於 patents.html) */
+.specs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+    font-size: 0.95em;
+}
+
+.specs-table th, .specs-table td {
+    padding: 12px 15px;
+    border: 1px solid #dee2e6;
+}
+
+.specs-table th {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    font-weight: 500;
+    width: 30%;
+}
+.specs-table tr:nth-child(even) {
+    background-color: #f2f6fb;
+}
+
+/* ==================================== */
+/* 06. 表單樣式 (Form - inquiry.html, contact.html) */
+/* ==================================== */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--primary-blue);
+}
+
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 1em;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-group input:focus, .form-group textarea:focus {
+    border-color: var(--secondary-blue);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.form-submit-btn {
+    background-color: var(--accent-red);
+    color: var(--white);
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 700;
+    width: 100%;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.form-submit-btn:hover {
+    background-color: #c82333;
+}
+
+/* 訊息提示 (用於 Inquiry.html) */
+#form-message {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 600;
+    display: none;
+}
+
+/* contact.html 佈局 */
+.contact-grid {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 50px;
+}
+
+.contact-info, .contact-form-container {
+    flex: 1;
+    padding: 30px;
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: var(--shadow-light);
+}
+.contact-info .info-item {
+    margin-bottom: 15px;
+}
+.contact-info .info-item span {
+    font-weight: 600;
+    color: var(--primary-blue);
+    display: block;
+}
+
+
+/* ==================================== */
+/* 07. 活動快訊頁 (News.html) 專屬樣式 */
+/* ==================================== */
+
+/* 最新消息條列式呈現 */
+.news-section .news-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+    transition: background-color 0.2s;
+}
+
+.news-section .news-item:last-child {
+    border-bottom: none;
+}
+
+.news-section .news-item:hover {
+    background-color: var(--light-gray);
+}
+
+.news-item .news-date {
+    color: var(--secondary-blue);
+    font-size: 0.9em;
+    width: 100px; /* 固定日期寬度 */
+    flex-shrink: 0;
+    font-weight: 500;
+}
+
+.news-item .news-title {
+    flex-grow: 1;
+    font-weight: 400;
+    padding: 0 20px; /* 增加與日期和連結的間距 */
+}
+
+.news-item .detail-link {
+    flex-shrink: 0;
+    color: var(--accent-red);
+    font-weight: 600;
+    white-space: nowrap; /* 確保 "了解詳情" 不換行 */
+}
+
+/* 參展活動卡片樣式 (news.html) */
+.event-card {
+    text-align: left;
+}
+.event-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+.event-card .detail-btn {
+    display: block;
+    text-align: center;
+    background-color: var(--secondary-blue);
+    color: var(--white);
+    padding: 8px 0;
+    margin-top: 15px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+.event-card .detail-btn:hover {
+    background-color: var(--primary-blue);
+}
+
+
+/* ==================================== */
+/* 08. 臨床應用頁 (Clinical.html) 專屬樣式 - 全頁橫向卡片版 */
+/* ==================================== */
+
+/* --- 共用網格設定 (3欄式) --- */
+.application-grid, .irb-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 強制分為三欄 */
+    gap: 30px; /* 卡片之間的間距 */
+    margin-bottom: 60px;
+}
+
+/* --- 傷口類型卡片樣式 --- */
+.application-card {
+    background-color: var(--white);
+    padding: 40px 30px;
+    border-radius: 12px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+    height: 100%;
+}
+
+.application-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 74, 153, 0.15);
+}
+
+.application-card .app-icon {
+    font-size: 3.5em;
+    margin-bottom: 20px;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    background-color: #f0f7ff; 
+    border-radius: 50%;
+    color: var(--primary-blue);
+}
+
+.application-card h3 {
+    color: var(--primary-blue);
+    font-size: 1.6em;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+    writing-mode: horizontal-tb !important; 
+    text-orientation: mixed !important;
+}
+
+.application-card p {
+    font-size: 1.05em;
+    color: #555;
+    line-height: 1.6;
+    margin: 0;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+}
+
+
+/* --- IRB 臨床研究卡片樣式 (新修正) --- */
+.irb-card {
+    background-color: var(--white);
+    padding: 30px 25px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column; /* 垂直排列：照片在上，內容在下 */
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 頂部裝飾條 */
+.irb-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: var(--secondary-blue);
+}
+
+.irb-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(220, 53, 69, 0.1); /* 紅色系微光 */
+}
+
+/* 醫師照片 */
+.irb-doctor {
+    margin-bottom: 20px;
+}
+
+.irb-doctor img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #f8f9fa;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* 醫院名稱與資訊 */
+.irb-info {
+    width: 100%;
+}
+
+.irb-info h4 {
+    color: var(--primary-blue);
+    font-size: 1.3em;
+    margin: 0 0 15px 0;
+    font-weight: 700;
+    min-height: 3em; /* 確保標題高度一致，對齊下方內容 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.irb-info p {
+    font-size: 0.95em;
+    color: #555;
+    margin: 8px 0;
+    text-align: left; /* 資訊內容靠左對齊，較易閱讀 */
+    background-color: #fcfcfc;
+    padding: 8px;
+    border-radius: 6px;
+    border-left: 3px solid var(--secondary-blue);
+}
+
+.irb-info p strong {
+    color: var(--text-dark);
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+/* 學術文獻列表 (保持不變) */
+.literature-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed #ced4da;
+}
+.literature-row:last-child {
+    border-bottom: none;
+}
+.literature-row p {
+    margin: 0;
+    flex-grow: 1;
+}
+.literature-row .download-link {
+    flex-shrink: 0;
+    margin-left: 20px;
+    padding: 5px 10px;
+    border: 1px solid var(--secondary-blue);
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+/* RWD 響應式調整 */
+@media (max-width: 992px) {
+    .application-grid, .irb-grid {
+        grid-template-columns: repeat(2, 1fr); /* 平板變兩欄 */
+    }
+}
+
+@media (max-width: 600px) {
+    .application-grid, .irb-grid {
+        grid-template-columns: 1fr; /* 手機變單欄 */
+    }
+}
+
+/* ==================================== */
+/* 09. 關於我們頁 (About.html) 專屬樣式 - 里程碑修正版 */
+/* ==================================== */
+
+/* 核心價值 (四個方塊) */
+.values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.value-card {
+    padding: 25px;
+    border-radius: 8px;
+    background-color: var(--light-gray);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.3s;
+    text-align: center;
+    border-top: 4px solid var(--secondary-blue);
+}
+
+.value-card:hover {
+    background-color: #e9ecef;
+}
+
+.value-card .value-icon {
+    font-size: 2.5em;
+    color: var(--accent-red);
+    margin-bottom: 10px;
+}
+
+.value-card h4 {
+    color: var(--primary-blue);
+    font-size: 1.2em;
+    font-weight: 700;
+}
+
+/* --- 歷史里程碑 (橫向時間軸) 修正 --- */
+.milestone-timeline {
+    display: flex;
+    overflow-x: auto; /* 允許橫向滾動 */
+    padding-bottom: 30px;
+    position: relative;
+    padding-top: 20px; 
+}
+
+/* 1. 調整中間灰色線條的位置，使其下移以配合圓點 */
+.milestone-timeline::before {
+    content: '';
+    position: absolute;
+    top: 72px; /* 修正：下移至年份與文字中間 */
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: #e0e0e0;
+    z-index: 1;
+}
+
+.milestone-item {
+    min-width: 280px; /* 稍微加寬卡片 */
+    text-align: center;
+    padding: 20px; /* 增加內部留白 */
+    position: relative;
+    z-index: 2;
+    background-color: var(--white);
+    border-radius: 12px;
+    margin: 0 15px; /* 增加卡片間距 */
+    box-shadow: var(--shadow-light);
+    flex-shrink: 0; 
+    border: 1px solid rgba(0,0,0,0.03);
+}
+
+/* 2. 調整年份樣式，增加下方邊距給圓點 */
+.milestone-item .milestone-year {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--accent-red);
+    margin-top: 0;
+    margin-bottom: 45px; /* 關鍵修正：增加底部間距，撐開空間給圓點 */
+}
+
+/* 3. 調整圓點位置，使其位於年份與文字的空隙中 */
+.milestone-item .milestone-dot {
+    width: 20px;
+    height: 20px;
+    background-color: var(--secondary-blue);
+    border: 4px solid var(--white);
+    border-radius: 50%;
+    position: absolute;
+    top: 62px; /* 修正：精準定位在空隙中央 (配合線條 top: 72px 中心) */
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 0 4px var(--light-gray); 
+}
+
+/* 4. 調整文字樣式 */
+.milestone-item p {
+    font-size: 1em;
+    color: #555;
+    line-height: 1.6;
+    margin: 0; /* 移除預設邊距 */
+}
+
+/* ==================================== */
+/* 10. 頁腳 (Footer) 樣式 */
+/* ==================================== */
+
+footer {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    text-align: center;
+    padding: 30px 20px;
+    font-size: 0.9em;
+    margin-top: 50px; /* 確保與內容區塊有間距 */
+}
+
+footer .footer-links a {
+    color: var(--white);
+    margin: 0 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid transparent;
+    transition: border-bottom-color 0.3s;
+}
+
+footer .footer-links a:hover {
+    border-bottom-color: var(--white);
+    color: var(--white); /* 確保 hover 時文字顏色不變 */
+}
+
+footer p {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+
+/* ==================================== */
+/* 11. RWD 響應式設計 */
+/* ==================================== */
+
+@media (max-width: 992px) {
+    .navbar {
+        padding: 15px 20px;
+    }
+    .product-item {
+        flex-direction: column;
+    }
+    .product-item img {
+        max-width: 80%;
+    }
+    .grid-3, .values-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .contact-grid { 
+        flex-direction: column; 
+    }
+    .irb-card { 
+        flex-direction: column; 
+        text-align: center; 
+    }
+    .irb-doctor { 
+        order: -1; 
+        margin-bottom: 15px; 
+    }
+    .irb-info p { 
+        text-align: left; 
+    }
+    .application-grid { /* 臨床應用頁在中小螢幕時調整為 2x2 */
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .nav-links {
+        margin-top: 10px;
+        flex-direction: column;
+        width: 100%;
+    }
+    .nav-links a {
+        margin: 5px 0;
+        width: 100%;
+        text-align: center;
+    }
+    .inquiry-btn {
+        margin: 10px auto 0;
+        width: 80%;
+    }
+    .hero-content h1 {
+        font-size: 2.5em;
+    }
+    .section-title {
+        font-size: 2em;
+    }
+    .content-section {
+        padding: 30px 20px;
+    }
+    .values-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* News.html RWD 調整 */
+    .news-section .news-item {
+        flex-wrap: wrap; 
+        padding: 10px 0;
+    }
+    .news-item .news-date {
+        width: 100%;
+        margin-bottom: 5px;
+        text-align: left;
+    }
+    .news-item .news-title {
+        padding: 0;
+        width: calc(100% - 100px);
+    }
+    .news-item .detail-link {
+        margin-left: auto; 
+    }
+    .application-grid { /* 臨床應用頁在小螢幕時調整為 1x4 */
+        grid-template-columns: 1fr;
+    }
+}
