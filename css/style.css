@@ -42,7 +42,7 @@ a:hover {
 }
 
 /* ==================================== */
-/* 02. 導航欄 (Header) - 漢堡選單實作 (修正 Logo/漢堡圖標對齊) */
+/* 02. 導航欄 (Header) - 最終強健修復版 */
 /* ==================================== */
 
 header {
@@ -58,35 +58,47 @@ header {
     margin: 0 auto;
     padding: 10px 20px;
     display: flex;
-    /* *** 修正點：將左右兩端元素分散對齊 *** */
-    justify-content: space-between; 
-    align-items: center;
+    justify-content: space-between;
+    /* 關鍵修正：確保所有元素（Logo, 漢堡按鈕）垂直居中對齊 */
+    align-items: center; 
 }
 
 .logo {
-    display: block;
-    line-height: 0;
+    /* 移除 display: block; 讓它保持在 flex 流程內 */
+    line-height: 1; /* 調整行高，避免過多內部間距 */
     flex-shrink: 0;
+    display: flex; /* 將 Logo 區塊本身變成 flex 容器 */
+    flex-direction: column; /* 讓 logo 內部的圖片和文字垂直排列 */
+    justify-content: center; /* 讓 Logo 內容垂直居中 */
 }
 
 .logo img {
-    /* 確保 Logo 大小保持一致，避免被漢堡圖標影響 */
     height: 40px; 
     width: auto;
     display: block;
 }
+/* 假設 Logo 圖片下方的文字（公司全名）是在 Logo 標籤內 */
+/* 我們需要微調這個文字的樣式來壓縮高度 */
+.logo span, .logo p { /* 假設文字是在 span 或 p 標籤內 */
+    font-size: 0.75em; /* 縮小字體 */
+    line-height: 1.2; /* 縮小行高 */
+    margin-top: 2px; /* 稍微減少與圖片的間距 */
+}
+
 
 /* 漢堡選單按鈕 - 預設在桌面隱藏 */
 .menu-toggle {
-    display: none;
+    display: none; 
     background: none;
     border: none;
     font-size: 2em;
     color: var(--primary-blue);
     cursor: pointer;
     padding: 5px;
-    /* *** 新增：在手機版時，漢堡按鈕應該在導航列的最右側 *** */
-    order: 2; 
+    order: 3; 
+    flex-shrink: 0;
+    /* 確保漢堡按鈕本身也垂直居中 */
+    align-self: center; 
 }
 
 /* 導航連結 - 桌面版 (橫向排列) */
@@ -94,48 +106,91 @@ header {
     display: flex;
     gap: 25px;
     align-items: center;
+    /* 確保在桌面版時，nav-links 區域排在 Logo 和可能的按鈕之間或右側 */
+    order: 2; 
 }
 
-/* ... [nav-links, nav-links a, inquiry-btn 等其他樣式保持不變] ... */
+.nav-links a {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 0;
+    position: relative;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover, .nav-links a.active {
+    color: var(--primary-blue);
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-blue);
+    transition: transform 0.3s;
+}
+
+.nav-links a:hover::after, .nav-links a.active::after {
+    transform: translateX(-50%) scaleX(1);
+}
+
+.inquiry-btn {
+    background-color: var(--accent-red);
+    color: var(--white) !important;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.inquiry-btn:hover {
+    background-color: #c82333; /* Darker red */
+    transform: translateY(-2px);
+}
+
+.inquiry-btn::after {
+    display: none; 
+}
 
 /* RWD - 手機版樣式 (Max-width 992px) */
+/* RWD - 手機版樣式 (Max-width 992px) */
 @media (max-width: 992px) {
-    /* 確保 Logo 與漢堡圖標在手機版時分散兩側 */
     .navbar {
-        /* 在手機尺寸下強制使用 space-between，避免被其他 flex 屬性覆蓋 */
-        justify-content: space-between !important; 
+        justify-content: space-between; 
+        padding: 10px 15px;
     }
     
-    /* 顯示漢堡按鈕 */
+    /* 顯示漢堡按鈕，並確保其在右側 */
     .menu-toggle {
         display: block;
-        /* *** 關鍵修正：將 menu-toggle 的順序設置在最後，確保它在右側 *** */
+        margin-left: auto; 
         order: 2; 
-        
-        /* 由於 .nav-links 區塊在手機上是 display: none， */
-        /* .navbar 內只剩下 .logo 和 .menu-toggle 參與 flex 排列， */
-        /* 搭配 space-between 即可讓 Logo 在左、漢堡在右。 */
     }
     
+    /* 隱藏桌面導航列，並準備作為下拉選單 */
     .nav-links {
-        display: none; /* 預設隱藏選單 */
+        display: none; 
         position: absolute;
-        top: 60px; /* 從導航欄下方開始顯示 */
+        /* 調整 top 配合壓縮後的 navbar 高度 */
+        top: 60px; 
         left: 0;
         width: 100%;
-        flex-direction: column; /* 垂直堆疊 */
+        flex-direction: column; 
         background-color: var(--white);
         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
         padding: 10px 0;
         z-index: 999;
-        
-        /* 啟用時顯示 */
-        &.active {
-            display: flex;
-        }
+        order: 3; 
     }
     
-    /* ... 其他手機版樣式保持不變 ... */
+    .nav-links.active {
+        display: flex;
+    }    
     .nav-links a {
         padding: 12px 20px;
         width: 100%;
