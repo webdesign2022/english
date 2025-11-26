@@ -56,11 +56,13 @@ header {
 .navbar {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 10px 20px;
+    /* 增加上下的 padding 留出空間給 logo */
+    padding: 15px 20px; 
     display: flex;
     justify-content: space-between;
-    /* 關鍵修正：確保所有元素（Logo, 漢堡按鈕）垂直居中對齊 */
-    align-items: center; 
+    align-items: center;
+    /* 關鍵：設定相對定位，以便漢堡按鈕絕對定位 */
+    position: relative; 
 }
 
 .logo {
@@ -159,25 +161,45 @@ header {
 
 /* RWD - 手機版樣式 (Max-width 992px) */
 /* RWD - 手機版樣式 (Max-width 992px) */
+/* RWD - 手機版樣式 (Max-width 992px) */
 @media (max-width: 992px) {
     .navbar {
-        justify-content: space-between; 
-        padding: 10px 15px;
+        /* 在手機模式下，移除 padding-bottom 以壓縮高度 */
+        padding: 15px 15px; /* 統一 padding，避免高度不一致 */
     }
     
-    /* 顯示漢堡按鈕，並確保其在右側 */
+    /* 1. Logo 區塊：保持在左側，不變動 */
+    .logo {
+        order: 1;
+        /* 確保 Logo 區塊不被絕對定位影響 */
+        position: relative; 
+        z-index: 1010;
+        /* 清除 flex 相關屬性，讓其自然排列 */
+        display: block; 
+        line-height: initial;
+    }
+    
+    /* 2. 漢堡按鈕：改為絕對定位，強制垂直居中 */
     .menu-toggle {
         display: block;
-        margin-left: auto; 
-        order: 2; 
+        /* 關鍵修正：絕對定位 */
+        position: absolute;
+        top: 50%; /* 垂直移動到 navbar 的 50% 位置 */
+        right: 15px; /* 靠右對齊 (與 padding 相同) */
+        transform: translateY(-50%); /* 向上推動自身高度的一半，達到完美居中 */
+        z-index: 1010;
+        order: 3; /* 雖然是絕對定位，但保留 order 屬性作為備用 */
+        
+        /* 確保漢堡圖標不會被 Logo 區塊的文字影響 */
+        margin: 0; 
     }
     
-    /* 隱藏桌面導航列，並準備作為下拉選單 */
+    /* 3. 導航選單：保持隱藏，並在漢堡按鈕下方展開 */
     .nav-links {
         display: none; 
         position: absolute;
-        /* 調整 top 配合壓縮後的 navbar 高度 */
-        top: 60px; 
+        /* 調整 top 配合 navbar 的整體高度 (約 60px) */
+        top: 65px; 
         left: 0;
         width: 100%;
         flex-direction: column; 
@@ -188,9 +210,10 @@ header {
         order: 3; 
     }
     
+    /* 啟用時顯示 */
     .nav-links.active {
         display: flex;
-    }    
+    }
     .nav-links a {
         padding: 12px 20px;
         width: 100%;
