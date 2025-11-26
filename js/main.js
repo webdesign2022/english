@@ -74,3 +74,37 @@ document.addEventListener('DOMContentLoaded', function() {
     //     });
     // }
 });
+document.addEventListener('DOMContentLoaded', function() {
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinks = document.getElementById('main-navigation');
+
+    if (menuToggle && navLinks) {
+        menuToggle.addEventListener('click', function() {
+            // 1. 切換 nav-links 的 active 狀態 (控制顯示/隱藏)
+            navLinks.classList.toggle('active');
+
+            // 2. 切換漢堡按鈕的 Aria 屬性，幫助無障礙閱讀
+            const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true' || false;
+            menuToggle.setAttribute('aria-expanded', !isExpanded);
+
+            // 3. 變更圖標 (可選：如果需要 X 符號)
+            // if (navLinks.classList.contains('active')) {
+            //     menuToggle.innerHTML = '&times;'; // 顯示 X 
+            // } else {
+            //     menuToggle.innerHTML = '&#9776;'; // 顯示三條線
+            // }
+        });
+    }
+
+    // 當點擊導航連結後，自動關閉選單 (優化手機體驗)
+    const links = navLinks.querySelectorAll('a');
+    links.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 992) {
+                navLinks.classList.remove('active');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                // menuToggle.innerHTML = '&#9776;';
+            }
+        });
+    });
+});

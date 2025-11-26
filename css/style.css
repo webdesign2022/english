@@ -42,89 +42,147 @@ a:hover {
 }
 
 /* ==================================== */
-/* 02. 導航欄 (Header) */
+/* 02. 導航欄 (Header) - 漢堡選單實作 */
 /* ==================================== */
 
 header {
     background-color: var(--white);
-    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     position: sticky;
     top: 0;
     z-index: 1000;
 }
 
 .navbar {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 15px 40px; /* 增加左右間距 */
 }
 
 .logo {
-    /* 移除文字相關樣式 */
-    /* font-size: 1.8em;
-    font-weight: 700;
-    color: var(--primary-blue); */
-    
-    /* 確保 Logo 容器為區塊元素，方便控制圖片 */
-    display: block; 
-    line-height: 0; /* 移除基線對齊可能造成的空隙 */
+    display: block;
+    line-height: 0;
+    flex-shrink: 0;
 }
 
-/* 新增對 Logo 圖片的控制 */
 .logo img {
-    height: 40px; /* 設定 Logo 圖片的高度，您可以根據需求調整 */
+    height: 40px; 
     width: auto;
     display: block;
 }
 
-/* RWD 調整：在小螢幕上可以稍微縮小 Logo */
-@media (max-width: 768px) {
-    .logo img {
-        height: 35px;
-    }
+/* 漢堡選單按鈕 - 預設在桌面隱藏 */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 2em;
+    color: var(--primary-blue);
+    cursor: pointer;
+    padding: 5px;
 }
+
+/* 導航連結 - 桌面版 (橫向排列) */
 .nav-links {
     display: flex;
+    gap: 25px;
     align-items: center;
 }
 
 .nav-links a {
     color: var(--text-dark);
-    margin-left: 30px;
-    font-size: 1em;
-    padding: 5px 0;
+    text-decoration: none;
     font-weight: 500;
-    border-bottom: 2px solid transparent; /* 導航下劃線效果 */
+    padding: 8px 0;
+    position: relative;
+    transition: color 0.3s;
 }
 
-.nav-links a:hover,
-.nav-links a.active { /* active 類別用於標記當前頁面 */
-    color: var(--secondary-blue);
-    border-bottom: 2px solid var(--secondary-blue);
+.nav-links a:hover, .nav-links a.active {
+    color: var(--primary-blue);
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-blue);
+    transition: transform 0.3s;
+}
+
+.nav-links a:hover::after, .nav-links a.active::after {
+    transform: translateX(-50%) scaleX(1);
 }
 
 .inquiry-btn {
     background-color: var(--accent-red);
     color: var(--white) !important;
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-weight: 700;
-    margin-left: 30px;
-    transition: background-color 0.3s, transform 0.2s;
-    border: 2px solid var(--accent-red);
-    line-height: 1;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: background-color 0.3s, transform 0.3s;
+    /* 覆蓋 ::after 效果 */
 }
 
 .inquiry-btn:hover {
-    background-color: #c82333;
-    border-color: #c82333;
-    color: var(--white) !important;
+    background-color: #c82333; /* Darker red */
     transform: translateY(-2px);
 }
 
+.inquiry-btn::after {
+    display: none; /* 隱藏詢問單按鈕下方的線條 */
+}
+
+/* RWD - 手機版樣式 (Max-width 992px) */
+@media (max-width: 992px) {
+    /* 顯示漢堡按鈕，隱藏桌面選單 */
+    .menu-toggle {
+        display: block;
+    }
+    
+    .nav-links {
+        display: none; /* 預設隱藏選單 */
+        position: absolute;
+        top: 60px; /* 從導航欄下方開始顯示 */
+        left: 0;
+        width: 100%;
+        flex-direction: column; /* 垂直堆疊 */
+        background-color: var(--white);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        padding: 10px 0;
+        z-index: 999;
+        
+        /* 啟用時顯示 */
+        &.active {
+            display: flex;
+        }
+    }
+    
+    .nav-links a {
+        padding: 12px 20px;
+        width: 100%;
+        text-align: left;
+        border-bottom: 1px solid #f8f9fa; /* 輕微分隔線 */
+    }
+    
+    .nav-links a::after {
+        display: none; /* 手機版不使用橫向線條效果 */
+    }
+
+    .inquiry-btn {
+        margin: 10px 20px;
+        width: auto;
+        text-align: center;
+        /* 手機版按鈕全寬置中 */
+    }
+}
 /* ==================================== */
 /* 03. 內容區塊通用樣式 */
 /* ==================================== */
