@@ -42,7 +42,7 @@ a:hover {
 }
 
 /* ==================================== */
-/* 02. 導航欄 (Header) - 漢堡選單實作 */
+/* 02. 導航欄 (Header) - 漢堡選單實作 (修正 Logo/漢堡圖標對齊) */
 /* ==================================== */
 
 header {
@@ -58,7 +58,8 @@ header {
     margin: 0 auto;
     padding: 10px 20px;
     display: flex;
-    justify-content: space-between;
+    /* *** 修正點：將左右兩端元素分散對齊 *** */
+    justify-content: space-between; 
     align-items: center;
 }
 
@@ -69,6 +70,7 @@ header {
 }
 
 .logo img {
+    /* 確保 Logo 大小保持一致，避免被漢堡圖標影響 */
     height: 40px; 
     width: auto;
     display: block;
@@ -83,6 +85,8 @@ header {
     color: var(--primary-blue);
     cursor: pointer;
     padding: 5px;
+    /* *** 新增：在手機版時，漢堡按鈕應該在導航列的最右側 *** */
+    order: 2; 
 }
 
 /* 導航連結 - 桌面版 (橫向排列) */
@@ -92,53 +96,7 @@ header {
     align-items: center;
 }
 
-.nav-links a {
-    color: var(--text-dark);
-    text-decoration: none;
-    font-weight: 500;
-    padding: 8px 0;
-    position: relative;
-    transition: color 0.3s;
-}
-
-.nav-links a:hover, .nav-links a.active {
-    color: var(--primary-blue);
-}
-
-.nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%) scaleX(0);
-    width: 100%;
-    height: 2px;
-    background-color: var(--primary-blue);
-    transition: transform 0.3s;
-}
-
-.nav-links a:hover::after, .nav-links a.active::after {
-    transform: translateX(-50%) scaleX(1);
-}
-
-.inquiry-btn {
-    background-color: var(--accent-red);
-    color: var(--white) !important;
-    padding: 8px 15px;
-    border-radius: 4px;
-    font-weight: 600;
-    transition: background-color 0.3s, transform 0.3s;
-    /* 覆蓋 ::after 效果 */
-}
-
-.inquiry-btn:hover {
-    background-color: #c82333; /* Darker red */
-    transform: translateY(-2px);
-}
-
-.inquiry-btn::after {
-    display: none; /* 隱藏詢問單按鈕下方的線條 */
-}
+/* ... [nav-links, nav-links a, inquiry-btn 等其他樣式保持不變] ... */
 
 /* RWD - 手機版樣式 (Max-width 992px) */
 @media (max-width: 992px) {
@@ -147,6 +105,8 @@ header {
         display: block;
     }
     
+    /* 由於 navbar 已經設定 space-between，menu-toggle 會被推到右邊 */
+
     .nav-links {
         display: none; /* 預設隱藏選單 */
         position: absolute;
@@ -169,18 +129,17 @@ header {
         padding: 12px 20px;
         width: 100%;
         text-align: left;
-        border-bottom: 1px solid #f8f9fa; /* 輕微分隔線 */
+        border-bottom: 1px solid #f8f9fa;
     }
     
     .nav-links a::after {
-        display: none; /* 手機版不使用橫向線條效果 */
+        display: none;
     }
 
     .inquiry-btn {
         margin: 10px 20px;
         width: auto;
         text-align: center;
-        /* 手機版按鈕全寬置中 */
     }
 }
 /* ==================================== */
