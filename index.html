@@ -128,46 +128,9 @@
 
         /* 響應式設計 (手機) */
         @media (max-width: 768px) {
-/* 導航欄調整 */
-            .navbar {
-                padding: 0 10px;
-            }
 
-            /* 漢堡選單按鈕顯示 */
-            .menu-toggle {
-                display: block; /* 【修正 2.1: 漢堡選單顯示】 */
-                z-index: 1001;
-            }
-            
-            /* 導航連結 (手機版) */
-            .nav-links {
-                /* 【修正 2.2: 選單預設隱藏和定位】 */
-                position: absolute;
-                top: var(--navbar-height);
-                left: 0;
-                width: 100%;
-                flex-direction: column;
-                background-color: var(--white);
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                overflow: hidden;
-                /* 預設高度為 0，或使用 transform/opacity 隱藏 */
-                max-height: 0; 
-                transition: max-height 0.4s ease-in-out; 
-            }
-
-            /* 【修正 2.3: 選單活動時顯示】 */
-            .nav-links.active {
-                max-height: 300px; /* 展開高度，確保能容納所有連結 */
-            }
-
-            .nav-links a {
-                padding: 12px 20px;
-                border-bottom: 1px solid #eee;
-            }
-
-			
             .carousel-container {
-                height: 20vh;
+                height: 80vh;
                 margin-top: 40px;
             }
 		   .slide-content h1 {
@@ -356,23 +319,14 @@
                 moveToSlide(currentIndex); // 重新計算並應用 transform
             });
 
-            // 處理導航列 Menu Toggle 的簡單範例 (如果您的 js/main.js 中沒有)
-            const menuToggle = document.querySelector('.menu-toggle');
-            const navLinks = document.getElementById('main-navigation');
-
-            if (menuToggle && navLinks) {
-                menuToggle.addEventListener('click', () => {
-                    const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true' || false;
-                    menuToggle.setAttribute('aria-expanded', !isExpanded);
-                    navLinks.classList.toggle('active');
-                });
-            }
+       
         });
     </script>
     <script src="js/main.js"></script>
 </body>
 
 </html>
+
 
 
 
