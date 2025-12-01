@@ -75,7 +75,7 @@ header {
 }
 
 .logo img {
-    height: 50px; 
+    height: 60px; 
     width: auto;
     display: block;
 }
@@ -178,7 +178,10 @@ header {
         display: block; 
         line-height: initial;
     }
-    
+    .logo img {
+    height: 40px; 
+    width: auto;
+    display: block;
     /* 2. 漢堡按鈕：改為絕對定位，強制垂直居中 */
     .menu-toggle {
         display: block;
@@ -1140,6 +1143,7 @@ footer p {
         }
  
 	
+
 
 
 
