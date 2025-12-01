@@ -247,9 +247,98 @@
         <p>版權所有 &copy; 2025 esui-得美醫用創新科技</p>
         <p>地址： xxxxxxx | 電話：xxxxxxx </p>
     </footer>
-    
+     <!-- 輪播 JavaScript 邏輯 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const track = document.getElementById('carousel-track');
+            const dotsContainer = document.getElementById('carousel-dots');
+            const slides = document.querySelectorAll('.carousel-slide');
+            const totalSlides = slides.length;
+            let currentIndex = 0;
+            const slideInterval = 5000; // 自動輪播間隔時間 (5 秒)
+            let autoSlideTimer;
+
+            // 1. 動態生成導航點
+            function createDots() {
+                slides.forEach((_, index) => {
+                    const dot = document.createElement('div');
+                    dot.classList.add('dot');
+                    if (index === 0) {
+                        dot.classList.add('active');
+                    }
+                    dot.addEventListener('click', () => {
+                        moveToSlide(index);
+                        resetAutoSlide();
+                    });
+                    dotsContainer.appendChild(dot);
+                });
+            }
+
+            // 2. 切換到指定 Slide
+            function moveToSlide(index) {
+                if (index < 0 || index >= totalSlides) {
+                    return; // 防止索引越界
+                }
+                currentIndex = index;
+                // 使用 window.innerWidth (px) 來計算偏移量
+                const offset = -currentIndex * window.innerWidth;
+                track.style.transform = `translateX(${offset}px)`;
+                updateDots();
+            }
+
+            // 3. 更新導航點的樣式
+            function updateDots() {
+                document.querySelectorAll('.dot').forEach((dot, index) => {
+                    if (index === currentIndex) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+            }
+
+            // 4. 自動切換到下一個 Slide
+            function nextSlide() {
+                let nextIndex = (currentIndex + 1) % totalSlides;
+                moveToSlide(nextIndex);
+            }
+
+            // 5. 啟動自動輪播
+            function startAutoSlide() {
+                autoSlideTimer = setInterval(nextSlide, slideInterval);
+            }
+
+            // 6. 重置自動輪播計時器 (手動點擊後會重設計時)
+            function resetAutoSlide() {
+                clearInterval(autoSlideTimer);
+                startAutoSlide();
+            }
+
+            // 7. 初始化輪播
+            createDots();
+            startAutoSlide();
+
+            // 處理視窗大小改變時，重新定位 Slide
+            window.addEventListener('resize', () => {
+                moveToSlide(currentIndex); // 重新計算並應用 transform
+            });
+
+            // 處理導航列 Menu Toggle 的簡單範例 (如果您的 js/main.js 中沒有)
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navLinks = document.getElementById('main-navigation');
+
+            if (menuToggle && navLinks) {
+                menuToggle.addEventListener('click', () => {
+                    const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true' || false;
+                    menuToggle.setAttribute('aria-expanded', !isExpanded);
+                    navLinks.classList.toggle('active');
+                });
+            }
+        });
+    </script>
     <script src="js/main.js"></script>
 </body>
 
 </html>
+
 
