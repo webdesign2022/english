@@ -75,7 +75,7 @@ header {
 }
 
 .logo img {
-    height: 60px; 
+    height: 80px; 
     width: auto;
     display: block;
 }
@@ -163,11 +163,6 @@ header {
 /* RWD - 手機版樣式 (Max-width 992px) */
 /* RWD - 手機版樣式 (Max-width 992px) */
 @media (max-width: 992px) {
-.logo img {
-    height: 40px; 
-    width: auto;
-    display: block;
-}
 	
     .navbar {
         /* 在手機模式下，移除 padding-bottom 以壓縮高度 */
@@ -184,6 +179,11 @@ header {
         display: block; 
         line-height: initial;
     }
+	.logo img {
+    height: 30px; 
+    width: auto;
+   
+}
   
     /* 2. 漢堡按鈕：改為絕對定位，強制垂直居中 */
     .menu-toggle {
@@ -1146,6 +1146,7 @@ footer p {
         }
  
 	
+
 
 
 
