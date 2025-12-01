@@ -5,6 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>esui-得美醫用創新科技(首頁)</title>
     <link rel="stylesheet" href="css/style.css"> 
+	<!-- 輪播專用 CSS 樣式 -->
+    <style>
+        /* 設置基本變數 (確保輪播樣式能取用) */
+        :root {
+            --primary-blue: #007bff;
+            --white: #ffffff;
+            --dark-blue: #0A3C6B;
+            --hero-blue: #004b80; /* 假設您原有的 hero 顏色 */
+        }
+
+        /* ------------------------------------- */
+        /* 輪播區塊 (Carousel) 專用 CSS 樣式 */
+        /* ------------------------------------- */
+        .carousel-container {
+            width: 100%;
+            /* 設置高度，通常 Banner 會佔用較大空間 */
+            height: 80vh;
+            min-height: 400px;
+            overflow: hidden; /* 隱藏超出視圖的圖片 */
+            position: relative;
+            /* 讓輪播緊接在導航列下方 (假設導航列高度約 60px) */
+            margin-top: 60px;
+        }
+
+        .carousel-track {
+            display: flex;
+            height: 100%;
+            /* 平滑過渡效果 */
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .carousel-slide {
+            flex-shrink: 0; /* 防止圖片被壓縮 */
+            width: 100vw; /* 確保每個 Slide 佔滿整個視口寬度 */
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: var(--white);
+            text-align: center;
+        }
+
+        /* 疊加層：用於讓文字更清晰 */
+        .carousel-slide::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* 半透明深色疊加層 */
+            z-index: 1;
+        }
+
+        .slide-content {
+            position: relative;
+            z-index: 2;
+            padding: 20px;
+            max-width: 800px; /* 限制內容寬度 */
+        }
+
+        .slide-content h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .slide-content p {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 30px;
+        }
+
+        /* 導航點 (Dots) 樣式 */
+        .carousel-dots {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .dot.active {
+            background-color: var(--white);
+            transform: scale(1.3);
+        }
+
+        /* 保持原有 cta-button 風格 */
+        .cta-button {
+            display: inline-block;
+            background-color: #ff5722; /* 假設您原有的按鈕顏色 */
+            color: var(--white);
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s;
+        }
+
+        .cta-button:hover {
+            background-color: #e64a19;
+            transform: translateY(-2px);
+        }
+
+        /* 響應式設計 (手機) */
+        @media (max-width: 768px) {
+            .carousel-container {
+                height: 60vh;
+                margin-top: 50px;
+            }
+            .slide-content h1 {
+                font-size: 2rem;
+            }
+            .slide-content p {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
 
 </head>
 <body>
@@ -208,6 +340,7 @@
 </body>
 
 </html>
+
 
 
 
