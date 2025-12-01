@@ -41,7 +41,9 @@
             flex-shrink: 0; /* 防止圖片被壓縮 */
             width: 100%; /* 確保每個 Slide 佔滿整個視口寬度 */
             height: 100%;
-            background-size: cover;
+            background-size: contain; /* 確保圖片內容完整顯示，不被裁切 */
+            background-repeat: no-repeat; /* 不重複 */
+            background-color: #f0f0f0; /* 未覆蓋區域的背景色，可選 */
             background-position: center;
             display: flex;
             align-items: center;
@@ -126,6 +128,44 @@
 
         /* 響應式設計 (手機) */
         @media (max-width: 768px) {
+/* 導航欄調整 */
+            .navbar {
+                padding: 0 10px;
+            }
+
+            /* 漢堡選單按鈕顯示 */
+            .menu-toggle {
+                display: block; /* 【修正 2.1: 漢堡選單顯示】 */
+                z-index: 1001;
+            }
+            
+            /* 導航連結 (手機版) */
+            .nav-links {
+                /* 【修正 2.2: 選單預設隱藏和定位】 */
+                position: absolute;
+                top: var(--navbar-height);
+                left: 0;
+                width: 100%;
+                flex-direction: column;
+                background-color: var(--white);
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                overflow: hidden;
+                /* 預設高度為 0，或使用 transform/opacity 隱藏 */
+                max-height: 0; 
+                transition: max-height 0.4s ease-in-out; 
+            }
+
+            /* 【修正 2.3: 選單活動時顯示】 */
+            .nav-links.active {
+                max-height: 300px; /* 展開高度，確保能容納所有連結 */
+            }
+
+            .nav-links a {
+                padding: 12px 20px;
+                border-bottom: 1px solid #eee;
+            }
+
+			
             .carousel-container {
                 height: 20vh;
                 margin-top: 40px;
@@ -333,6 +373,7 @@
 </body>
 
 </html>
+
 
 
 
