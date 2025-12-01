@@ -41,10 +41,7 @@
             flex-shrink: 0; /* 防止圖片被壓縮 */
             width: 100%; /* 確保每個 Slide 佔滿整個視口寬度 */
             height: 100%;
-            background-size: contain; /* 確保圖片內容完整顯示，不被裁切 */
-            background-repeat: no-repeat; /* 不重複 */
-            background-color: #f0f0f0; /* 未覆蓋區域的背景色，可選 */
-            background-position: center;
+            background-size: cover;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -130,7 +127,7 @@
         @media (max-width: 768px) {
 
             .carousel-container {
-                height: 100vh;
+                height: 60%;
                 margin-top: 40px;
             }
 		   .slide-content h1 {
@@ -326,6 +323,7 @@
 </body>
 
 </html>
+
 
 
 
