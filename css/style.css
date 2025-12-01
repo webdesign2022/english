@@ -75,7 +75,7 @@ header {
 }
 
 .logo img {
-    height: 80px; 
+    height: 70px; 
     width: auto;
     display: block;
 }
@@ -1004,4 +1004,5 @@ footer p {
     .application-grid { /* 臨床應用頁在小螢幕時調整為 1x4 */
         grid-template-columns: 1fr;
     }
+
 }
