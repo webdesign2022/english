@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NANO BANANA - Video Test</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #000; /* OLED 極致黑 */
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 核心容器 */
+        .holo-container {
+            position: relative;
+            width: 320px; /* 可根據手機大小調整 */
+            height: 320px;
+        }
+
+        /* 四個面的通用設定 */
+        .face {
+            position: absolute;
+            width: 100px; /* 這裡決定投影畫面的大小 */
+            height: 100px;
+            overflow: hidden; /* 確保影片不超出邊界 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 影片樣式 */
+        .face video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 讓影片填滿方塊 */
+            opacity: 0.8; /* 微微調整透明度，更有全息感 */
+        }
+
+        /* 疊加在影片上的 UI 層 (時間與資訊) */
+        .ui-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10; /* 確保文字浮在影片上面 */
+        }
+
+        .time { 
+            font-size: 20px; 
+            font-weight: bold; 
+            color: #fff;
+            text-shadow: 0 0 5px #000; /* 增加文字陰影，確保在亮背景也清楚 */
+        }
+        
+        .label { 
+            font-size: 10px; 
+            color: #00FFFF; 
+            margin-top: 2px; 
+            background: rgba(0,0,0,0.5); /* 半透明黑底 */
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        /* === 位置與旋轉設定 (魔法發生的地方) === */
+        
+        /* 上方 (倒立) */
+        .top {
+            top: 0; left: 110px; /* 110px 是 (容器寬320 - 投影寬100)/2 */
+            transform: rotate(180deg);
+        }
+
+        /* 下方 (正向) */
+        .bottom {
+            bottom: 0; left: 110px;
+        }
+
+        /* 左方 (順時針轉90度) */
+        .left {
+            top: 110px; left: 0;
+            transform: rotate(90deg);
+        }
+
+        /* 右方 (逆時針轉90度) */
+        .right {
+            top: 110px; right: 0;
+            transform: rotate(-90deg);
+        }
+
+        /* 中心十字準心 (校正用) */
+        .crosshair {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 20px; height: 20px;
+            border: 2px solid red;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.3;
+            z-index: 99;
+            pointer-events: none;
+        }
+        
+        /* 點擊播放提示 */
+        #play-hint {
+            position: absolute;
+            top: 10%;
+            color: gray;
+            font-size: 12px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body onclick="playAll()">
+
+    <div id="play-hint">點擊螢幕開始同步播放</div>
+
+    <div class="holo-container">
+        <div class="crosshair"></div>
+
+        <div class="face top">
+            <video src="weather.mp4" muted loop playsinline></video>
+            <div class="ui-overlay">
+                <div class="time" id="t1">12:00</div>
+                <div class="label">TAIPEI</div>
+            </div>
+        </div>
+
+        <div class="face bottom">
+            <video src="weather.mp4" muted loop playsinline></video>
+            <div class="ui-overlay">
+                <div class="time" id="t2">12:00</div>
+                <div class="label">TAIPEI</div>
+            </div>
+        </div>
+
+        <div class="face left">
+            <video src="weather.mp4" muted loop playsinline></video>
+            <div class="ui-overlay">
+                <div class="time" id="t3">12:00</div>
+                <div class="label">TAIPEI</div>
+            </div>
+        </div>
+
+        <div class="face right">
+            <video src="weather.mp4" muted loop playsinline></video>
+            <div class="ui-overlay">
+                <div class="time" id="t4">12:00</div>
+                <div class="label">TAIPEI</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 時間更新邏輯
+        function updateTime() {
+            const now = new Date();
+            // 只顯示 分:秒 方便觀察，正式版可改回 時:分
+            const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit' });
+            
+            document.getElementById('t1').innerText = timeString;
+            document.getElementById('t2').innerText = timeString;
+            document.getElementById('t3').innerText = timeString;
+            document.getElementById('t4').innerText = timeString;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // 確保影片同步播放邏輯
+        function playAll() {
+            const videos = document.querySelectorAll('video');
+            videos.forEach(v => {
+                v.play().catch(e => console.log("等待用戶互動才能播放"));
+            });
+            document.getElementById('play-hint').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
