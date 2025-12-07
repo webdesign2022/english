@@ -3,46 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NANO BANANA - Video Test</title>
+    <title>NANO BANANA - Info Station</title>
     <style>
         body {
             margin: 0;
-            background-color: #000; /* OLED 極致黑 */
+            background-color: #000;
             overflow: hidden;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Arial', sans-serif; /* 可以換成 'Courier New' 更像電腦終端機 */
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        /* 核心容器 */
         .holo-container {
             position: relative;
-            width: 320px; /* 可根據手機大小調整 */
+            width: 320px;
             height: 320px;
         }
 
-        /* 四個面的通用設定 */
         .face {
             position: absolute;
-            width: 100px; /* 這裡決定投影畫面的大小 */
+            width: 100px;
             height: 100px;
-            overflow: hidden; /* 確保影片不超出邊界 */
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            border-radius: 10px; /* 稍微圓角，投影邊緣會柔和一點 */
         }
 
-        /* 影片樣式 */
         .face video {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* 讓影片填滿方塊 */
-            opacity: 0.8; /* 微微調整透明度，更有全息感 */
+            object-fit: cover;
+            opacity: 0.7; /* 背景暗一點，凸顯文字 */
         }
 
-        /* 疊加在影片上的 UI 層 (時間與資訊) */
+        /* UI 層設定 */
         .ui-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -50,134 +48,117 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10; /* 確保文字浮在影片上面 */
+            z-index: 10;
         }
 
+        /* 時間樣式 (最大) */
         .time { 
-            font-size: 20px; 
-            font-weight: bold; 
+            font-size: 22px; 
+            font-weight: 800; 
             color: #fff;
-            text-shadow: 0 0 5px #000; /* 增加文字陰影，確保在亮背景也清楚 */
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0px #000; /* 硬陰影，增加閱讀性 */
+            line-height: 1;
         }
         
+        /* 日期樣式 (次要) */
+        .date {
+            font-size: 10px;
+            color: #FFFF00; /* 黃色日期，對比藍色背景 */
+            font-weight: bold;
+            margin-top: 4px;
+            text-shadow: 1px 1px 0px #000;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        /* 地點標籤 (最小) */
         .label { 
-            font-size: 10px; 
+            font-size: 8px; 
             color: #00FFFF; 
-            margin-top: 2px; 
-            background: rgba(0,0,0,0.5); /* 半透明黑底 */
-            padding: 2px 5px;
-            border-radius: 4px;
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        /* === 位置與旋轉設定 (魔法發生的地方) === */
-        
-        /* 上方 (倒立) */
-        .top {
-            top: 0; left: 110px; /* 110px 是 (容器寬320 - 投影寬100)/2 */
-            transform: rotate(180deg);
-        }
+        /* 位置與旋轉 */
+        .top { top: 0; left: 110px; transform: rotate(180deg); }
+        .bottom { bottom: 0; left: 110px; }
+        .left { top: 110px; left: 0; transform: rotate(90deg); }
+        .right { top: 110px; right: 0; transform: rotate(-90deg); }
 
-        /* 下方 (正向) */
-        .bottom {
-            bottom: 0; left: 110px;
-        }
-
-        /* 左方 (順時針轉90度) */
-        .left {
-            top: 110px; left: 0;
-            transform: rotate(90deg);
-        }
-
-        /* 右方 (逆時針轉90度) */
-        .right {
-            top: 110px; right: 0;
-            transform: rotate(-90deg);
-        }
-
-        /* 中心十字準心 (校正用) */
         .crosshair {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 20px; height: 20px;
-            border: 2px solid red;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.3;
-            z-index: 99;
-            pointer-events: none;
+            position: absolute; top: 50%; left: 50%;
+            width: 10px; height: 10px; background: red;
+            border-radius: 50%; transform: translate(-50%, -50%);
+            opacity: 0.3; pointer-events: none;
         }
         
-        /* 點擊播放提示 */
-        #play-hint {
-            position: absolute;
-            top: 10%;
-            color: gray;
-            font-size: 12px;
-            z-index: 100;
-        }
+        #play-hint { position: absolute; top: 10%; color: gray; font-size: 12px; z-index: 100; }
     </style>
 </head>
 <body onclick="playAll()">
 
-    <div id="play-hint">點擊螢幕開始同步播放</div>
+    <div id="play-hint">點擊螢幕開始</div>
 
     <div class="holo-container">
         <div class="crosshair"></div>
 
-        <div class="face top">
-            <video src="weather.mp4" muted loop playsinline></video>
-            <div class="ui-overlay">
-                <div class="time" id="t1">12:00</div>
-                <div class="label">TAIPEI</div>
-            </div>
-        </div>
-
-        <div class="face bottom">
-            <video src="weather.mp4" muted loop playsinline></video>
-            <div class="ui-overlay">
-                <div class="time" id="t2">12:00</div>
-                <div class="label">TAIPEI</div>
-            </div>
-        </div>
-
-        <div class="face left">
-            <video src="weather.mp4" muted loop playsinline></video>
-            <div class="ui-overlay">
-                <div class="time" id="t3">12:00</div>
-                <div class="label">TAIPEI</div>
-            </div>
-        </div>
-
-        <div class="face right">
-            <video src="weather.mp4" muted loop playsinline></video>
-            <div class="ui-overlay">
-                <div class="time" id="t4">12:00</div>
-                <div class="label">TAIPEI</div>
-            </div>
-        </div>
+        <div class="face top" id="face-top"></div>
+        <div class="face bottom" id="face-bottom"></div>
+        <div class="face left" id="face-left"></div>
+        <div class="face right" id="face-right"></div>
     </div>
 
     <script>
-        // 時間更新邏輯
-        function updateTime() {
-            const now = new Date();
-            // 只顯示 分:秒 方便觀察，正式版可改回 時:分
-            const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit' });
-            
-            document.getElementById('t1').innerText = timeString;
-            document.getElementById('t2').innerText = timeString;
-            document.getElementById('t3').innerText = timeString;
-            document.getElementById('t4').innerText = timeString;
-        }
-        setInterval(updateTime, 1000);
-        updateTime();
+        // 渲染內容的函數 (一次更新四個面)
+        function renderFaces() {
+            const faces = ['top', 'bottom', 'left', 'right'];
+            const container = document.querySelector('.holo-container');
 
-        // 確保影片同步播放邏輯
-        function playAll() {
-            const videos = document.querySelectorAll('video');
-            videos.forEach(v => {
-                v.play().catch(e => console.log("等待用戶互動才能播放"));
+            faces.forEach(pos => {
+                const div = document.getElementById(`face-${pos}`);
+                // 填入 HTML 結構
+                div.innerHTML = `
+                    <video src="weather.mp4" muted loop playsinline></video>
+                    <div class="ui-overlay">
+                        <div class="time">12:00</div>
+                        <div class="date">12/7 SUN</div>
+                        <div class="label">TAIPEI</div>
+                    </div>
+                `;
             });
+        }
+        
+        renderFaces(); // 先產生 HTML
+
+        // 更新時間與日期的邏輯
+        function updateInfo() {
+            const now = new Date();
+            
+            // 格式化時間 (HH:MM)
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit' });
+            
+            // 格式化日期 (12/7 週日)
+            // 你可以改 'en-US' 變成英文 (Dec 7 Sun)
+            const dateStr = now.toLocaleDateString('zh-TW', { 
+                month: 'numeric', 
+                day: 'numeric', 
+                weekday: 'short' 
+            });
+
+            // 選取所有面裡的文字元素進行更新
+            document.querySelectorAll('.time').forEach(el => el.innerText = timeStr);
+            document.querySelectorAll('.date').forEach(el => el.innerText = dateStr);
+        }
+
+        setInterval(updateInfo, 1000);
+        updateInfo();
+
+        // 播放控制
+        function playAll() {
+            document.querySelectorAll('video').forEach(v => v.play().catch(e=>console.log(e)));
             document.getElementById('play-hint').style.display = 'none';
         }
     </script>
