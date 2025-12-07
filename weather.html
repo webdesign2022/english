@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NANO BANANA MVP</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #000; /* OLED省電黑 */
+            overflow: hidden;
+            color: #00FFFF; /* 賽博龐克藍 */
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 核心容器 */
+        .holo-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            /* border: 1px solid #333; 測試時可打開邊框 */
+        }
+
+        /* 四個面的通用設定 */
+        .face {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* 內容樣式 */
+        .time { font-size: 24px; font-weight: bold; text-shadow: 0 0 10px #00FFFF; }
+        .label { font-size: 12px; color: #FF00FF; margin-top: 5px; }
+
+        /* 位置與旋轉設定 (關鍵技術) */
+        
+        /* 上方 (倒立) */
+        .top {
+            top: 0; left: 100px;
+            transform: rotate(180deg);
+        }
+
+        /* 下方 (正向) */
+        .bottom {
+            bottom: 0; left: 100px;
+        }
+
+        /* 左方 (順時針轉90度) */
+        .left {
+            top: 100px; left: 0;
+            transform: rotate(90deg);
+        }
+
+        /* 右方 (逆時針轉90度) */
+        .right {
+            top: 100px; right: 0;
+            transform: rotate(-90deg);
+        }
+
+        /* 中心十字準心 (校正用) */
+        .crosshair {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 20px; height: 20px;
+            background: red;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            opacity: 0.5;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="holo-container">
+        <div class="crosshair"></div>
+
+        <div class="face top">
+            <div class="time" id="t1">12:00</div>
+            <div class="label">NANO</div>
+        </div>
+        <div class="face bottom">
+            <div class="time" id="t2">12:00</div>
+            <div class="label">NANO</div>
+        </div>
+        <div class="face left">
+            <div class="time" id="t3">12:00</div>
+            <div class="label">NANO</div>
+        </div>
+        <div class="face right">
+            <div class="time" id="t4">12:00</div>
+            <div class="label">NANO</div>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+            
+            // 同步更新四個面
+            document.getElementById('t1').innerText = timeString;
+            document.getElementById('t2').innerText = timeString;
+            document.getElementById('t3').innerText = timeString;
+            document.getElementById('t4').innerText = timeString;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</body>
+</html>
