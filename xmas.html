@@ -596,19 +596,31 @@ function onResults(results) {
 function detectGesture(lm) {
     const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
     const tip = [lm[4], lm[8], lm[12], lm[16], lm[20]]; 
-    let extended = tip.map((t, i) => i === 0 ? dist(t, lm[5]) > 0.15 : t.y < lm[(i*4)+2].y); // 簡化伸直判斷
+    const pip = [lm[3], lm[7], lm[11], lm[15], lm[19]]; 
+    
+    // 檢查每個手指是否伸直 (拇指與手掌基部距離，其他四指與 PIP 關節的 Y 軸比較)
+    let extended = [false, false, false, false, false];
+    extended[0] = dist(tip[0], lm[1]) > 0.15; // 拇指
+    for(let i=1; i<5; i++) {
+        // 判斷指尖是否在 PIP 關節的上方 (Y 軸較小)
+        extended[i] = tip[i].y < pip[i].y; 
+    }
 
-    // 1. 張開手 (五指全開) -> 雪球放大
+    // -----------------------------------------------------------
+    // *** 1. 🖐️ 張開手 (五指全開) -> 啟動放大 (優先權最高) ***
     if (extended.every(e => e)) {
-        if (currentState === SCENES.SCENES_0_SNOWGLOBE) {
+        if (currentState === SCENES.SCENE_0_SNOWGLOBE) {
             currentState = SCENES.SCENE_1_ENLARGE;
             setStatus("張開手，雪球正在放大...");
         }
-        return;
+        return; // 一旦張手，立即返回，防止誤判為其他伸直的手勢。
     }
-
-    // 2. 捏合/握拳 (爆炸或照片特寫)
+    
+    // -----------------------------------------------------------
+    // *** 2. 捏合/握拳 (Explosion/Pinch) ***
+    // 捏合：拇指和食指靠近，且其他手指彎曲。
     const isPinch = dist(tip[0], tip[1]) < 0.05 && !extended[2] && !extended[3] && !extended[4];
+    
     if (isPinch) {
         if (currentState === SCENES.SCENE_1_ENLARGED) { 
             currentState = SCENES.TRANSITION_EXPLODE;
@@ -620,7 +632,18 @@ function detectGesture(lm) {
         return;
     }
 
-    // 3. 比讚 (Thumb Up) -> 聖誕樹畫廊
+    // -----------------------------------------------------------
+    // *** 3. 👌 OK 手勢 (Style 0) -> 最終狀態 (OK 手勢已能運作，保留原邏輯) ***
+    const isOK = dist(tip[0], tip[1]) < 0.05 && extended[2] && extended[3] && extended[4];
+    if (isOK && currentState !== SCENES.SCENE_4_FINAL) { 
+        currentState = SCENES.SCENE_4_FINAL; 
+        setStatus("👌 終極聖誕樹！Merry Christmas！");
+        return;
+    }
+    
+    // -----------------------------------------------------------
+    // *** 4. 👍 比讚 (Thumb Up) -> 聖誕樹畫廊 ***
+    // 拇指伸直，其他四指彎曲。
     const isThumbUp = extended[0] && !extended[1] && !extended[2] && !extended[3] && !extended[4];
     if (isThumbUp && currentState === SCENES.SCENE_2_RUNNING) {
         currentState = SCENES.TRANSITION_TO_GALLERY;
@@ -628,7 +651,9 @@ function detectGesture(lm) {
         return;
     }
     
-    // 4. 比 YA (V/2) -> 風暴盤旋
+    // -----------------------------------------------------------
+    // *** 5. ✌️ 比 2 (YA) -> 風暴盤旋 ***
+    // 食指和中指伸直，無名指和小指彎曲。
     if (extended[1] && extended[2] && !extended[3] && !extended[4]) {
         if (currentState === SCENES.TRANSITION_TO_GALLERY || currentState === SCENES.SCENE_3_PINCH) {
              currentState = SCENES.SCENE_3_STORM;
@@ -637,15 +662,10 @@ function detectGesture(lm) {
         return;
     }
     
-    // 5. 比 OK (Style 0) -> 最終狀態
-    const isOK = dist(tip[0], tip[1]) < 0.05 && extended[2] && extended[3] && extended[4];
-    if (isOK && currentState !== SCENES.SCENE_4_FINAL) { 
-        currentState = SCENES.SCENE_4_FINAL; 
-        setStatus("👌 終極聖誕樹！Merry Christmas！");
-        return;
-    }
+    // -----------------------------------------------------------
+    // *** 狀態保持與回退 ***
     
-    // 如果在 SCENE_3_PINCH 狀態，手指分開則回到 SCENE_3_STORM
+    // 如果在 SCENE_3_PINCH 狀態，但手指分開，則回到 SCENE_3_STORM
     if (currentState === SCENES.SCENE_3_PINCH && !isPinch) {
         currentState = SCENES.SCENE_3_STORM;
         setStatus("回到風暴盤旋模式。");
