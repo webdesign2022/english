@@ -209,7 +209,11 @@ function draw() {
             target = treeStyles[0][finalTreeIndex];
             particleColor = color(random(170, 210), random(50, 90), 100); // 冰雪藍
             maxSpeed = 15;
-            drawText("MERRY CHRISTMAS", width / 2, height * 0.15, 200);
+            
+            // *** 修正：確保在第一個粒子的繪製步驟中呼叫一次 drawText ***
+            if (index === 0) { 
+               drawText("MERRY CHRISTMAS", width / 2, height * 0.15, 200);
+            }
             break;
     }
 
@@ -514,19 +518,25 @@ class Particle {
 }
 
 // --- 輔助函數 ---
-function drawText(text, x, y, hue) {
+function drawText(text_str, x, y, hue) {
+    // 確保使用 p5.js 的繪圖環境
     push();
     textAlign(CENTER, CENTER);
     textSize(min(width / 12, 70));
     noStroke();
+    
+    // 陰影效果
     drawingContext.shadowBlur = 30;
     drawingContext.shadowColor = color(hue, 60, 100); 
+    
+    // 填充顏色
     fill(hue, 10, 100); 
-    text(text, x, y);
+    
+    // *** 關鍵修正：將參數名從 text 變為 text_str，避免與 p5.js 的 text() 函數衝突 ***
+    text(text_str, x, y); 
     pop();
     drawingContext.shadowBlur = 0; 
 }
-
 function nextPhoto() {
     galleryIndex = (galleryIndex + 1) % photoUrls.length;
     imgElement.src = photoUrls[galleryIndex];
