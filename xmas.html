@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>手勢互動聖誕電影</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    body { margin: 0; padding: 0; background-color: #000510; overflow: hidden; font-family: 'Cinzel', serif; }
+    #video-container { position: absolute; top: 10px; left: 10px; width: 160px; height: 120px; z-index: 10; border: 1px solid #00ffff; box-shadow: 0 0 10px #00ffff; transform: scaleX(-1); opacity: 0.8; border-radius: 8px; background: #000;}
+    video { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+    
+    #status { 
+      position: absolute; bottom: 20px; left: 20px; 
+      color: #aaddff; font-size: 18px; font-weight: bold; 
+      text-shadow: 0 0 8px #00ffff; z-index: 10; pointer-events: none; 
+      letter-spacing: 1px; line-height: 1.6; padding: 10px; 
+      background: rgba(0, 0, 0, 0.7); border-radius: 8px; 
+      max-width: 400px; text-align: left;
+    }
+    
+    #scene-overlay { 
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+        pointer-events: none; z-index: 5;
+    }
+    
+    /* 兩個小孩的圖片容器 */
+    #kid-image-left, #kid-image-right {
+        position: absolute; width: 80px; height: 80px; border-radius: 50%; 
+        object-fit: cover; opacity: 0.9;
+    }
+
+    #gallery-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 350px; max-height: 350px; display: none; border-radius: 50%; box-shadow: 0 0 50px rgba(255, 255, 255, 0.5); pointer-events: none; border: 4px solid rgba(255, 255, 255, 0.9); z-index: 5; object-fit: cover; aspect-ratio: 1/1; }
+    #music-btn { position: absolute; top: 20px; right: 20px; z-index: 20; background: rgba(0, 50, 100, 0.4); border: 1px solid #00ffff; color: #00ffff; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-family: sans-serif; font-size: 14px; transition: all 0.3s; text-shadow: 0 0 5px #00ffff; }
+    #music-btn:hover { background: rgba(0, 255, 255, 0.2); box-shadow: 0 0 15px #00ffff; }
+    .gesture-hint { position: absolute; top: 140px; left: 10px; color: rgba(255,255,255,0.7); font-size: 12px; font-family: sans-serif; line-height: 1.6; pointer-events: none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; }
+    .highlight { color: #00ffff; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div id="video-container">
+    <video class="input_video" playsinline></video>
+  </div>
+  
+  <div class="gesture-hint">
+    <span class="highlight">🖐️ 張手</span>：雪球放大 / 轉場<br>
+    <span class="highlight">🤏 捏合/握拳</span>：爆炸煙火 & 照片特寫<br>
+    <span class="highlight">👍 比讚</span>：轉場聖誕樹畫廊<br>
+    <span class="highlight">✌️ 比 2 (YA)</span>：聖誕樹化為風暴盤旋<br>
+    <span class="highlight">👌 OK手勢</span>：最燦爛的終極聖誕樹
+  </div>
+  
+  <div id="scene-overlay">
+      <img id="kid-image-left" src="https://images.unsplash.com/photo-1579705973809-c18749a2072e?auto=format&fit=crop&w=160&q=80" alt="Kid Left">
+      <img id="kid-image-right" src="https://images.unsplash.com/photo-1596495679502-3e284a14138e?auto=format&fit=crop&w=160&q=80" alt="Kid Right">
+  </div>
+
+
+  <div id="status">系統啟動中...</div>
+  <button id="music-btn">🎵 播放聖誕音樂</button>
+  <img id="gallery-img" src="" alt="Gallery Photo">
+  
+  <audio id="bg-music" loop>
+      <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3" type="audio/mpeg">
+  </audio>
+
+<script>
+// --- 全域變數與狀態機 ---
+let particles = [];
+let treeStyles = [[], [], [], [], []]; // Style 0-4
+let galleryPoints = []; // 畫廊點位
+let snowGlobePoints = []; // 雪球點位 (大小會動態改變)
+let runningShapePoints = []; // 聖誕老人/麋鹿點位 (待計算)
+
+let handX = 0, handY = 0;
+let isHandDetected = false;
+let particleCount = 1300; 
+
+// --- 互動電影狀態機 ---
+const SCENES = {
+    'SCENE_0_SNOWGLOBE': 0, // 初始雪球，等待張手
+    'SCENE_1_ENLARGE': 1,   // 雪球放大中
+    'SCENE_1_ENLARGED': 2,  // 雪球放大完成，等待握拳
+    'TRANSITION_EXPLODE': 3,// 爆炸為煙火
+    'SCENE_2_RUNNING': 4,   // 聖誕老人麋鹿奔跑
+    'TRANSITION_TO_GALLERY': 5, // 轉場到聖誕樹畫廊
+    'SCENE_3_STORM': 6,     // 粒子風暴 (YA 手勢)
+    'SCENE_3_PINCH': 7,     // 照片特寫 (捏合)
+    'SCENE_4_FINAL': 8      // 終極聖誕樹 (OK 手勢)
+};
+let currentState = SCENES.SCENE_0_SNOWGLOBE;
+
+// --- 場景專用變數 ---
+let enlargeTimer = 0;
+const ENLARGE_DURATION = 1.5; // 放大時間 (秒)
+const R_SMALL = 120;
+const R_LARGE = 300;
+let currentSnowGlobeRadius = R_SMALL;
+
+let explodeTimer = 0;
+const EXPLODE_DURATION = 0.5; // 爆炸時間 (秒)
+let explodeForce = 20; // 爆炸推力
+
+let galleryIndex = 0;
+let lastGallerySwitchTime = 0;
+const PHOTO_SWITCH_INTERVAL = 2000; // 2秒切換一張
+
+let autoRotateAngle = 0; // 用於畫廊和終極樹
+let stormAngle = 0; // 用於風暴盤旋
+
+const imgElement = document.getElementById('gallery-img');
+const statusElement = document.getElementById('status');
+const kidLeft = document.getElementById('kid-image-left');
+const kidRight = document.getElementById('kid-image-right');
+// 略過音樂按鈕邏輯
+
+// --- P5.js Setup ---
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  colorMode(HSB, 360, 100, 100, 1);
+  textFont('Cinzel'); 
+  
+  for (let i = 0; i < particleCount; i++) {
+    particles.push(new Particle());
+  }
+  
+  // 計算所有靜態點位
+  calculateAllTargetPoints();
+
+  // 初始化小孩圖片位置 (在雪球中央)
+  kidLeft.style.top = `${height/2 - R_SMALL/2}px`;
+  kidLeft.style.left = `${width/2 - 40 - R_SMALL/2}px`;
+  kidRight.style.top = `${height/2 - R_SMALL/2}px`;
+  kidRight.style.left = `${width/2 + R_SMALL/2 - 40}px`;
+}
+
+function draw() {
+  background(220, 80, 8, 0.35);
+  autoRotateAngle += 0.005;
+  stormAngle += 0.05;
+
+  // --- 狀態機邏輯處理 ---
+  handleStateTransitions();
+  
+  // --- 粒子更新與繪製 ---
+  particles.forEach((p, index) => {
+    let target = null;
+    let particleColor = color(200, 50, 100); // 預設雪球色
+    let maxSpeed = 10;
+    
+    // 根據當前狀態設定目標點和顏色
+    switch(currentState) {
+        case SCENES.SCENE_0_SNOWGLOBE:
+        case SCENES.SCENE_1_ENLARGE:
+        case SCENES.SCENE_1_ENLARGED:
+            // 雪球模式
+            let snowIndex = index % snowGlobePoints.length;
+            target = snowGlobePoints[snowIndex];
+            particleColor = color(random(200, 220), random(5, 20), random(80, 100)); // 藍白雪花
+            maxSpeed = 8;
+            updateSnowGlobePosition(currentSnowGlobeRadius); // 讓雪球點位更新
+            break;
+            
+        case SCENES.TRANSITION_EXPLODE:
+            // 爆炸中：目標點為 null，速度已在 handleStateTransitions 中設定
+            particleColor = color(random(0, 360), 80, 100); // 煙火色
+            maxSpeed = 30; 
+            break;
+
+        case SCENES.SCENE_2_RUNNING:
+            // 聖誕老人麋鹿：如果 Running Shape Points 準備好
+            if (runningShapePoints.length > 0) {
+                 let runIndex = index % runningShapePoints.length;
+                 target = runningShapePoints[runIndex];
+                 particleColor = color(random(10, 30), random(80, 100), random(80, 100)); // 紅色/棕色系
+            } else {
+                 target = createVector(width/2, height/2); // 預設到中央
+            }
+            maxSpeed = 12;
+            break;
+            
+        case SCENES.TRANSITION_TO_GALLERY:
+        case SCENES.SCENE_3_STORM:
+            // 風暴盤旋 (環狀目標點)
+            let stormTarget = calculateStormTarget(index, stormAngle);
+            target = stormTarget.pos;
+            particleColor = stormTarget.color;
+            maxSpeed = 15;
+            break;
+            
+        case SCENES.SCENE_3_PINCH:
+            // 照片特寫 (環繞中央照片)
+            let pinchIndex = index % galleryPoints.length;
+            target = galleryPoints[pinchIndex];
+            particleColor = color(random(330, 350), 60, 100); // 粉色相框
+            maxSpeed = 10;
+            break;
+
+        case SCENES.SCENE_4_FINAL:
+            // 終極聖誕樹 (Style 0)
+            let finalTreeIndex = index % treeStyles[0].length;
+            target = treeStyles[0][finalTreeIndex];
+            particleColor = color(random(170, 210), random(50, 90), 100); // 冰雪藍
+            maxSpeed = 15;
+            drawText("MERRY CHRISTMAS", width / 2, height * 0.15, 200);
+            break;
+    }
+
+    p.maxSpeed = maxSpeed;
+    p.targetColor = particleColor;
+    p.behaviors(target, handX, handY, currentState, isHandDetected);
+    p.update();
+    p.show();
+  });
+  
+  // 處理前景圖像的顯示和隱藏
+  handleImageVisibility();
+}
+
+function handleStateTransitions() {
+    // 處理計時器和自動轉換
+    switch(currentState) {
+        case SCENES.SCENE_1_ENLARGE:
+            enlargeTimer += deltaTime / 1000;
+            let progress = min(enlargeTimer / ENLARGE_DURATION, 1.0);
+            currentSnowGlobeRadius = lerp(R_SMALL, R_LARGE, progress);
+            
+            // 更新小孩圖片位置和大小
+            let kidSize = lerp(80, 160, progress);
+            kidLeft.style.width = kidLeft.style.height = `${kidSize}px`;
+            kidRight.style.width = kidRight.style.height = `${kidSize}px`;
+            kidLeft.style.top = `${height/2 - kidSize/2}px`;
+            kidLeft.style.left = `${width/2 - kidSize/2 - 40}px`;
+            kidRight.style.top = `${height/2 - kidSize/2}px`;
+            kidRight.style.left = `${width/2 + 40}px`;
+
+            if (progress >= 1.0) {
+                currentState = SCENES.SCENE_1_ENLARGED;
+                setStatus("雪球已放大。捏合/握拳將其炸開！");
+                enlargeTimer = 0;
+            }
+            break;
+            
+        case SCENES.TRANSITION_EXPLODE:
+            explodeTimer += deltaTime / 1000;
+            if (explodeTimer === deltaTime / 1000) {
+                 // 爆炸第一幀：施加爆炸力
+                 particles.forEach(p => {
+                     let force = p5.Vector.sub(p.pos, createVector(width/2, height/2));
+                     force.setMag(explodeForce * random(0.5, 1.5));
+                     p.applyForce(force);
+                     p.vel.limit(30);
+                 });
+            }
+            
+            if (explodeTimer >= EXPLODE_DURATION) {
+                // 爆炸結束，轉到奔跑
+                currentState = SCENES.SCENE_2_RUNNING;
+                setStatus("🎉 爆炸煙火！聖誕老人和麋鹿出現了！");
+                explodeTimer = 0;
+            }
+            break;
+
+        case SCENES.TRANSITION_TO_GALLERY:
+            // 轉場到畫廊，粒子飛向樹
+            if (millis() - lastGallerySwitchTime > PHOTO_SWITCH_INTERVAL) {
+                nextPhoto();
+                lastGallerySwitchTime = millis();
+            }
+            // 確保粒子到位後，轉換為靜態畫廊模式
+            if (particles.every(p => p5.Vector.dist(p.pos, treeStyles[1][p.index % treeStyles[1].length]) < 100)) {
+                setStatus("畫廊模式：聖誕樹為背景，👍比讚維持");
+                // 實際上 'TRANSITION_TO_GALLERY' 已經足夠作為畫廊模式
+            }
+            break;
+            
+        case SCENES.SCENE_3_STORM:
+            // 風暴模式下的照片輪播
+            if (millis() - lastGallerySwitchTime > PHOTO_SWITCH_INTERVAL / 2) {
+                nextPhoto(); // 風暴中切換更快
+                lastGallerySwitchTime = millis();
+            }
+            break;
+    }
+}
+
+function handleImageVisibility() {
+    // 控制小孩圖片的顯示
+    const isSnowGlobe = currentState === SCENES.SCENE_0_SNOWGLOBE || currentState === SCENES.SCENE_1_ENLARGE || currentState === SCENES.SCENE_1_ENLARGED;
+    kidLeft.style.display = kidRight.style.display = isSnowGlobe ? 'block' : 'none';
+    
+    // 控制照片牆的顯示
+    const isGallery = currentState === SCENES.TRANSITION_TO_GALLERY || currentState === SCENES.SCENE_3_STORM || currentState === SCENES.SCENE_3_PINCH;
+    imgElement.style.display = isGallery ? 'block' : 'none';
+    
+    if (isGallery) {
+        // 照片跟隨粒子風暴旋轉 (視覺效果)
+        if (currentState === SCENES.SCENE_3_STORM) {
+            imgElement.style.transform = `translate(-50%, -50%) rotate(${stormAngle}deg) scale(0.8)`;
+        } else {
+            imgElement.style.transform = `translate(-50%, -50%) rotate(0deg) scale(1.0)`;
+        }
+    }
+}
+
+
+// --- 粒子目標點計算 ---
+function calculateAllTargetPoints() {
+    // Style 0: 冰雪螺旋 (用於最終狀態 SCENE_4)
+    treeStyles[0] = calculateSpiralTreePoints(0.25, 3);
+    // Style 1: 經典松樹 (用於畫廊背景 TRANSITION_TO_GALLERY)
+    treeStyles[1] = calculatePineTreePoints(0.28); 
+    // 雪球點位 (用於 SCENE_0/1)
+    snowGlobePoints = calculateCirclePoints(R_SMALL);
+    // 畫廊環繞點 (用於 SCENE_3_PINCH)
+    galleryPoints = calculateCirclePoints(260); 
+
+    // 聖誕老人/麋鹿輪廓 (簡化：使用兩個大方塊或圓形點位模擬)
+    runningShapePoints = calculateCompoundShapePoints();
+}
+
+function calculateSpiralTreePoints(maxR_factor, revolutions) {
+    let points = [];
+    let treeHeight = height * 0.75;
+    let treeBaseY = height * 0.9;
+    let treeTopY = treeBaseY - treeHeight;
+    let cx = width / 2;
+    let spirals = 6;
+    let pts = floor(particleCount / spirals);
+    for (let s = 0; s < spirals; s++) {
+        let startAngle = (TWO_PI / spirals) * s;
+        for (let i = 0; i < pts; i++) {
+            let t = i / pts;
+            let angle = startAngle + t * TWO_PI * revolutions;
+            let radius = map(t, 0, 1, width * maxR_factor, 0);
+            let y = map(t, 0, 1, treeBaseY, treeTopY);
+            points.push(createVector(cx + radius*cos(angle), y));
+        }
+    }
+    return points;
+}
+
+function calculatePineTreePoints(maxR_factor) {
+    // 經典松樹的點位計算 (與前一版相同)
+    let points = [];
+    let treeHeight = height * 0.75;
+    let treeBaseY = height * 0.9;
+    let treeTopY = treeBaseY - treeHeight;
+    let cx = width / 2;
+    for(let i=0; i<particleCount; i++) {
+        let y = random(treeTopY, treeBaseY);
+        let t = map(y, treeTopY, treeBaseY, 0, 1);
+        let maxR = map(t, 0, 1, 0, width*maxR_factor);
+        let r = maxR * sqrt(random(1));
+        let angle = random(TWO_PI);
+        points.push(createVector(cx + r*cos(angle), y));
+    }
+    return points;
+}
+
+function calculateCirclePoints(radius) {
+    let points = [];
+    let count = particleCount / 4; 
+    let cx = width/2, cy = height/2;
+    for(let i=0; i < count; i++) {
+        let angle = map(i, 0, count, 0, TWO_PI);
+        let x = cx + radius * cos(angle);
+        let y = cy + radius * sin(angle);
+        points.push(createVector(x, y));
+    }
+    return points;
+}
+
+function calculateCompoundShapePoints() {
+    // 模擬聖誕老人(左) 和 麋鹿(右) 的輪廓
+    let points = [];
+    let cx = width / 2, cy = height / 2;
+    let offset = width * 0.15; // 兩者間距
+
+    // 聖誕老人 (模擬一個圓形 + 矩形帽)
+    for (let i = 0; i < particleCount / 2; i++) {
+        let r = random(100);
+        let angle = random(TWO_PI);
+        let x = cx - offset + r * cos(angle);
+        let y = cy + r * sin(angle);
+        points.push(createVector(x, y));
+    }
+    
+    // 麋鹿 (模擬一個長橢圓形)
+    for (let i = 0; i < particleCount / 2; i++) {
+        let x = cx + offset + random(-100, 100);
+        let y = cy + random(-150, 50);
+        points.push(createVector(x, y));
+    }
+    return points;
+}
+
+function updateSnowGlobePosition(radius) {
+    // 根據當前半徑更新雪球點位
+    let cx = width/2, cy = height/2;
+    for(let i=0; i < snowGlobePoints.length; i++) {
+        let angle = map(i, 0, snowGlobePoints.length, 0, TWO_PI);
+        snowGlobePoints[i].x = cx + radius * cos(angle);
+        snowGlobePoints[i].y = cy + radius * sin(angle);
+    }
+}
+
+function calculateStormTarget(index, currentAngle) {
+    // 粒子風暴目標點：讓粒子繞著中心盤旋，並以螺旋形式向外擴散
+    let center = createVector(width/2, height/2);
+    let radius = map(index, 0, particleCount, 150, 400); // 半徑從 150 到 400
+    let angle = currentAngle + index * 0.1; 
+    
+    let x = center.x + radius * cos(angle);
+    let y = center.y + radius * sin(angle);
+
+    // 讓照片輪播時，粒子顏色也多變
+    let h = (index + frameCount * 2) % 360; 
+    
+    return {
+        pos: createVector(x, y),
+        color: color(h, 80, 100)
+    };
+}
+
+
+// --- 粒子類別 (簡化版，省略部分細節以聚焦狀態機) ---
+class Particle {
+  constructor() {
+    this.pos = createVector(random(width), random(height));
+    this.vel = createVector(0, 0);
+    this.acc = createVector(0, 0);
+    this.maxSpeed = 10;
+    this.maxForce = 0.4;
+    this.currentColor = color(0, 0, 0, 0);
+    this.targetColor = color(255);
+    this.size = random(2, 4);
+    this.index = floor(random(particleCount)); // 給予粒子一個固定 ID
+  }
+
+  behaviors(target, hx, hy, state, hasHand) {
+    let mouse = createVector(hx, hy);
+    
+    if (state === SCENES.TRANSITION_EXPLODE) {
+        // 爆炸模式：只移動，不尋求目標
+        this.vel.limit(this.maxSpeed);
+    } else if (state === SCENES.SCENE_3_PINCH && hasHand) {
+        // 捏合特寫：對手勢施加微弱排斥力
+        let flee = this.flee(mouse);
+        flee.mult(0.5); 
+        this.applyForce(flee);
+    }
+    
+    // 如果有目標點，則趨向目標點 (Arrive)
+    if (target) {
+        let arrive = this.arrive(target);
+        this.applyForce(arrive);
+    } else if (state !== SCENES.TRANSITION_EXPLODE) {
+        // 如果沒有目標點且非爆炸，則輕微隨機遊蕩
+        this.applyForce(p5.Vector.random2D().mult(0.1));
+    }
+  }
+
+  arrive(target) {
+    let desired = p5.Vector.sub(target, this.pos);
+    let d = desired.mag();
+    let speed = this.maxSpeed;
+    if (d < 100) speed = map(d, 0, 100, 0, this.maxSpeed);
+    desired.setMag(speed);
+    let steer = p5.Vector.sub(desired, this.vel);
+    steer.limit(this.maxForce);
+    return steer;
+  }
+
+  flee(target) {
+    let desired = p5.Vector.sub(target, this.pos);
+    let d = desired.mag();
+    if (d < 150) {
+      desired.setMag(this.maxSpeed);
+      desired.mult(-1);
+      let steer = p5.Vector.sub(desired, this.vel);
+      steer.limit(this.maxForce);
+      return steer;
+    }
+    return createVector(0, 0);
+  }
+
+  applyForce(f) { this.acc.add(f); }
+
+  update() {
+    this.pos.add(this.vel);
+    this.vel.add(this.acc);
+    this.acc.mult(0);
+    // 增加摩擦力
+    this.vel.mult(0.95);
+    this.currentColor = lerpColor(this.currentColor, this.targetColor, 0.08);
+  }
+
+  show() {
+    drawingContext.shadowBlur = this.size * 2; 
+    drawingContext.shadowColor = this.currentColor;
+    stroke(this.currentColor);
+    strokeWeight(this.size);
+    point(this.pos.x, this.pos.y);
+    drawingContext.shadowBlur = 0; 
+  }
+}
+
+// --- 輔助函數 ---
+function drawText(text, x, y, hue) {
+    push();
+    textAlign(CENTER, CENTER);
+    textSize(min(width / 12, 70));
+    noStroke();
+    drawingContext.shadowBlur = 30;
+    drawingContext.shadowColor = color(hue, 60, 100); 
+    fill(hue, 10, 100); 
+    text(text, x, y);
+    pop();
+    drawingContext.shadowBlur = 0; 
+}
+
+function nextPhoto() {
+    galleryIndex = (galleryIndex + 1) % photoUrls.length;
+    imgElement.src = photoUrls[galleryIndex];
+}
+
+function setStatus(message) {
+    statusElement.innerHTML = `<span style="color:#00ffff;">💡 ${message}</span>`;
+    statusElement.style.background = 'rgba(0, 0, 0, 0.7)';
+}
+
+
+// --- 🚨 MediaPipe Hands 啟動與手勢辨識 (核心驅動) ---
+const videoElement = document.getElementsByClassName('input_video')[0];
+let hands;
+
+try {
+    hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
+    hands.onResults(onResults);
+    
+    const camera = new Camera(videoElement, { 
+        onFrame: async () => await hands.send({image: videoElement}), 
+        width: 320, height: 240 
+    });
+    
+    setStatus(`請求攝影機權限... (請點擊「允許」)`);
+    camera.start()
+        .then(() => setStatus("✅ 攝影機就緒！請張開手 (五指) 開始電影。"))
+        .catch(err => {
+            statusElement.innerHTML = `<span style="color:red; font-size:20px;">🚨 攝影機啟動失敗！</span><br>請確認網址為 **https://** 開頭並允許權限。`;
+            statusElement.style.background = 'rgba(100, 0, 0, 0.8)';
+        });
+        
+} catch(e) {
+    statusElement.innerHTML = `<span style="color:red; font-size:20px;">❌ 核心程式載入失敗！</span><br>檢查網路或 CDN 資源。`;
+    statusElement.style.background = 'rgba(100, 0, 0, 0.8)';
+}
+
+function onResults(results) {
+  if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+    isHandDetected = true;
+    const landmarks = results.multiHandLandmarks[0];
+    // 座標轉換為畫布大小
+    handX = (1 - landmarks[9].x) * window.innerWidth;
+    handY = landmarks[9].y * window.innerHeight;
+    detectGesture(landmarks);
+  } else {
+    isHandDetected = false;
+    // 如果手勢消失，且當前在需要手勢維持的狀態，則切換回起始狀態
+    if (currentState >= SCENES.SCENE_1_ENLARGED && currentState !== SCENES.SCENE_4_FINAL) {
+        currentState = SCENES.SCENE_0_SNOWGLOBE;
+        setStatus("手勢中斷，回到雪球開場。請張開手開始電影。");
+    }
+  }
+}
+
+function detectGesture(lm) {
+    const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    const tip = [lm[4], lm[8], lm[12], lm[16], lm[20]]; 
+    let extended = tip.map((t, i) => i === 0 ? dist(t, lm[5]) > 0.15 : t.y < lm[(i*4)+2].y); // 簡化伸直判斷
+
+    // 1. 張開手 (五指全開) -> 雪球放大
+    if (extended.every(e => e)) {
+        if (currentState === SCENES.SCENES_0_SNOWGLOBE) {
+            currentState = SCENES.SCENE_1_ENLARGE;
+            setStatus("張開手，雪球正在放大...");
+        }
+        return;
+    }
+
+    // 2. 捏合/握拳 (爆炸或照片特寫)
+    const isPinch = dist(tip[0], tip[1]) < 0.05 && !extended[2] && !extended[3] && !extended[4];
+    if (isPinch) {
+        if (currentState === SCENES.SCENE_1_ENLARGED) { 
+            currentState = SCENES.TRANSITION_EXPLODE;
+            setStatus("爆炸！煙火轉場中...");
+        } else if (currentState === SCENES.SCENE_3_STORM) {
+            currentState = SCENES.SCENE_3_PINCH;
+            setStatus("照片特寫模式，捏合維持");
+        }
+        return;
+    }
+
+    // 3. 比讚 (Thumb Up) -> 聖誕樹畫廊
+    const isThumbUp = extended[0] && !extended[1] && !extended[2] && !extended[3] && !extended[4];
+    if (isThumbUp && currentState === SCENES.SCENE_2_RUNNING) {
+        currentState = SCENES.TRANSITION_TO_GALLERY;
+        setStatus("👍 比讚！粒子重組成聖誕樹畫廊！");
+        return;
+    }
+    
+    // 4. 比 YA (V/2) -> 風暴盤旋
+    if (extended[1] && extended[2] && !extended[3] && !extended[4]) {
+        if (currentState === SCENES.TRANSITION_TO_GALLERY || currentState === SCENES.SCENE_3_PINCH) {
+             currentState = SCENES.SCENE_3_STORM;
+             setStatus("✌️ 聖誕樹化為風暴盤旋，請捏合鎖定照片。");
+        }
+        return;
+    }
+    
+    // 5. 比 OK (Style 0) -> 最終狀態
+    const isOK = dist(tip[0], tip[1]) < 0.05 && extended[2] && extended[3] && extended[4];
+    if (isOK && currentState !== SCENES.SCENE_4_FINAL) { 
+        currentState = SCENES.SCENE_4_FINAL; 
+        setStatus("👌 終極聖誕樹！Merry Christmas！");
+        return;
+    }
+    
+    // 如果在 SCENE_3_PINCH 狀態，手指分開則回到 SCENE_3_STORM
+    if (currentState === SCENES.SCENE_3_PINCH && !isPinch) {
+        currentState = SCENES.SCENE_3_STORM;
+        setStatus("回到風暴盤旋模式。");
+    }
+}
+</script>
+</body>
+</html>
