@@ -56,22 +56,19 @@ header {
 .navbar {
     max-width: 1200px;
     margin: 0 auto;
-    /* 增加上下的 padding 留出空間給 logo */
     padding: 15px 20px; 
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* 關鍵：設定相對定位，以便漢堡按鈕絕對定位 */
     position: relative; 
 }
 
 .logo {
-    /* 移除 display: block; 讓它保持在 flex 流程內 */
-    line-height: 1; /* 調整行高，避免過多內部間距 */
+    line-height: 1; 
     flex-shrink: 0;
-    display: flex; /* 將 Logo 區塊本身變成 flex 容器 */
-    flex-direction: column; /* 讓 logo 內部的圖片和文字垂直排列 */
-    justify-content: center; /* 讓 Logo 內容垂直居中 */
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
 }
 
 .logo img {
@@ -79,16 +76,13 @@ header {
     width: auto;
     display: block;
 }
-/* 假設 Logo 圖片下方的文字（公司全名）是在 Logo 標籤內 */
-/* 我們需要微調這個文字的樣式來壓縮高度 */
-.logo span, .logo p { /* 假設文字是在 span 或 p 標籤內 */
-    font-size: 0.75em; /* 縮小字體 */
-    line-height: 1.2; /* 縮小行高 */
-    margin-top: 2px; /* 稍微減少與圖片的間距 */
+
+.logo span, .logo p { 
+    font-size: 0.75em; 
+    line-height: 1.2; 
+    margin-top: 2px; 
 }
 
-
-/* 漢堡選單按鈕 - 預設在桌面隱藏 */
 .menu-toggle {
     display: none; 
     background: none;
@@ -99,16 +93,13 @@ header {
     padding: 5px;
     order: 3; 
     flex-shrink: 0;
-    /* 確保漢堡按鈕本身也垂直居中 */
     align-self: center; 
 }
 
-/* 導航連結 - 桌面版 (橫向排列) */
 .nav-links {
     display: flex;
     gap: 25px;
     align-items: center;
-    /* 確保在桌面版時，nav-links 區域排在 Logo 和可能的按鈕之間或右側 */
     order: 2; 
 }
 
@@ -151,7 +142,7 @@ header {
 }
 
 .inquiry-btn:hover {
-    background-color: #c82333; /* Darker red */
+    background-color: #c82333; 
     transform: translateY(-2px);
 }
 
@@ -159,52 +150,32 @@ header {
     display: none; 
 }
 
-/* RWD - 手機版樣式 (Max-width 992px) */
-/* RWD - 手機版樣式 (Max-width 992px) */
-/* RWD - 手機版樣式 (Max-width 992px) */
 @media (max-width: 992px) {
-	
     .navbar {
-        /* 在手機模式下，移除 padding-bottom 以壓縮高度 */
-        padding: 15px 15px; /* 統一 padding，避免高度不一致 */
+        padding: 15px 15px; 
     }
     
-    /* 1. Logo 區塊：保持在左側，不變動 */
     .logo {
         order: 1;
-        /* 確保 Logo 區塊不被絕對定位影響 */
         position: relative; 
         z-index: 1010;
-        /* 清除 flex 相關屬性，讓其自然排列 */
         display: block; 
         line-height: initial;
     }
-	.logo img {
-    height: 40px; 
-    width: auto;
-   
-}
-  
-    /* 2. 漢堡按鈕：改為絕對定位，強制垂直居中 */
+    
     .menu-toggle {
         display: block;
-        /* 關鍵修正：絕對定位 */
         position: absolute;
-        top: 50%; /* 垂直移動到 navbar 的 50% 位置 */
-        right: 15px; /* 靠右對齊 (與 padding 相同) */
-        transform: translateY(-50%); /* 向上推動自身高度的一半，達到完美居中 */
+        top: 50%; 
+        right: 15px; 
+        transform: translateY(-50%); 
         z-index: 1010;
-        order: 3; /* 雖然是絕對定位，但保留 order 屬性作為備用 */
-        
-        /* 確保漢堡圖標不會被 Logo 區塊的文字影響 */
         margin: 0; 
     }
     
-    /* 3. 導航選單：保持隱藏，並在漢堡按鈕下方展開 */
     .nav-links {
         display: none; 
         position: absolute;
-        /* 調整 top 配合 navbar 的整體高度 (約 60px) */
         top: 65px; 
         left: 0;
         width: 100%;
@@ -213,10 +184,8 @@ header {
         box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
         padding: 10px 0;
         z-index: 999;
-        order: 3; 
     }
     
-    /* 啟用時顯示 */
     .nav-links.active {
         display: flex;
     }
@@ -237,6 +206,7 @@ header {
         text-align: center;
     }
 }
+
 /* ==================================== */
 /* 03. 內容區塊通用樣式 */
 /* ==================================== */
@@ -286,7 +256,6 @@ header {
     font-weight: 600;
 }
 
-
 /* ==================================== */
 /* 04. 首頁 Hero 區塊 */
 /* ==================================== */
@@ -331,7 +300,6 @@ header {
     transform: scale(1.05);
 }
 
-/* 產品頁次要按鈕 (專利/合作廠商) */
 .secondary-cta {
     display: inline-block;
     padding: 12px 25px;
@@ -357,7 +325,7 @@ header {
 
 .cta-partner {
     background-color: var(--white);
-    color: #28a745; /* 綠色 */
+    color: #28a745; 
     border-color: #28a745;
 }
 .cta-partner:hover {
@@ -366,7 +334,6 @@ header {
     border-color: #28a745;
     transform: translateY(-2px);
 }
-
 
 /* ==================================== */
 /* 05. 卡片與網格 (Features, Products, Events) */
@@ -404,16 +371,15 @@ header {
     font-weight: 600;
 }
 
-/* 產品/應用卡片 */
 .product-item, .application-card {
-	max-width: 900px;
+    max-width: 900px;
     background-color: var(--white);
     border-radius: 10px;
     box-shadow: var(--shadow-light);
     padding: 30px;
     margin-bottom: 30px;
-	margin-left: auto; 
-	margin-right: auto;
+    margin-left: auto; 
+    margin-right: auto;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -431,7 +397,6 @@ header {
     margin-top: 0;
 }
 
-/* 規格表 (適用於 patents.html) */
 .specs-table {
     width: 100%;
     border-collapse: collapse;
@@ -504,7 +469,6 @@ header {
     background-color: #c82333;
 }
 
-/* 訊息提示 (用於 Inquiry.html) */
 #form-message {
     margin-top: 20px;
     padding: 15px;
@@ -514,7 +478,6 @@ header {
     display: none;
 }
 
-/* contact.html 佈局 */
 .contact-grid {
     display: flex;
     gap: 40px;
@@ -537,12 +500,10 @@ header {
     display: block;
 }
 
-
 /* ==================================== */
 /* 07. 活動快訊頁 (News.html) 專屬樣式 */
 /* ==================================== */
 
-/* 最新消息條列式呈現 */
 .news-section .news-item {
     display: flex;
     justify-content: space-between;
@@ -563,7 +524,7 @@ header {
 .news-item .news-date {
     color: var(--secondary-blue);
     font-size: 0.9em;
-    width: 100px; /* 固定日期寬度 */
+    width: 100px; 
     flex-shrink: 0;
     font-weight: 500;
 }
@@ -571,17 +532,16 @@ header {
 .news-item .news-title {
     flex-grow: 1;
     font-weight: 400;
-    padding: 0 20px; /* 增加與日期和連結的間距 */
+    padding: 0 20px; 
 }
 
 .news-item .detail-link {
     flex-shrink: 0;
     color: var(--accent-red);
     font-weight: 600;
-    white-space: nowrap; /* 確保 "了解詳情" 不換行 */
+    white-space: nowrap; 
 }
 
-/* 參展活動卡片樣式 (news.html) */
 .event-card {
     text-align: left;
 }
@@ -605,20 +565,17 @@ header {
     background-color: var(--primary-blue);
 }
 
-
 /* ==================================== */
-/* 08. 臨床應用頁 (Clinical.html) 專屬樣式 - 全頁橫向卡片版 */
+/* 08. 臨床應用頁 (Clinical.html) 專屬樣式 */
 /* ==================================== */
 
-/* --- 共用網格設定 (3欄式) --- */
 .application-grid, .irb-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 強制分為三欄 */
-    gap: 30px; /* 卡片之間的間距 */
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 30px; 
     margin-bottom: 60px;
 }
 
-/* --- 傷口類型卡片樣式 --- */
 .application-card {
     background-color: var(--white);
     padding: 40px 30px;
@@ -655,8 +612,6 @@ header {
     font-size: 1.6em;
     font-weight: 700;
     margin: 0 0 15px 0;
-    writing-mode: horizontal-tb !important; 
-    text-orientation: mixed !important;
 }
 
 .application-card p {
@@ -664,18 +619,14 @@ header {
     color: #555;
     line-height: 1.6;
     margin: 0;
-    writing-mode: horizontal-tb !important;
-    text-orientation: mixed !important;
 }
 
-
-/* --- IRB 臨床研究卡片樣式 (新修正) --- */
 .irb-card {
     background-color: var(--white);
     padding: 30px 25px;
     border-radius: 12px;
     display: flex;
-    flex-direction: column; /* 垂直排列：照片在上，內容在下 */
+    flex-direction: column; 
     align-items: center;
     text-align: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -686,7 +637,6 @@ header {
     overflow: hidden;
 }
 
-/* 頂部裝飾條 */
 .irb-card::after {
     content: '';
     position: absolute;
@@ -695,16 +645,6 @@ header {
     width: 100%;
     height: 4px;
     background-color: var(--secondary-blue);
-}
-
-.irb-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(220, 53, 69, 0.1); /* 紅色系微光 */
-}
-
-/* 醫師照片 */
-.irb-doctor {
-    margin-bottom: 20px;
 }
 
 .irb-doctor img {
@@ -716,81 +656,28 @@ header {
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* 醫院名稱與資訊 */
-.irb-info {
-    width: 100%;
-}
-
 .irb-info h4 {
     color: var(--primary-blue);
     font-size: 1.3em;
     margin: 0 0 15px 0;
     font-weight: 700;
-    min-height: 3em; /* 確保標題高度一致，對齊下方內容 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .irb-info p {
     font-size: 0.95em;
     color: #555;
     margin: 8px 0;
-    text-align: left; /* 資訊內容靠左對齊，較易閱讀 */
+    text-align: left; 
     background-color: #fcfcfc;
     padding: 8px;
     border-radius: 6px;
     border-left: 3px solid var(--secondary-blue);
 }
 
-.irb-info p strong {
-    color: var(--text-dark);
-    font-weight: 600;
-    margin-right: 5px;
-}
-
-/* 學術文獻列表 (保持不變) */
-.literature-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px dashed #ced4da;
-}
-.literature-row:last-child {
-    border-bottom: none;
-}
-.literature-row p {
-    margin: 0;
-    flex-grow: 1;
-}
-.literature-row .download-link {
-    flex-shrink: 0;
-    margin-left: 20px;
-    padding: 5px 10px;
-    border: 1px solid var(--secondary-blue);
-    border-radius: 4px;
-    font-size: 0.9em;
-}
-
-/* RWD 響應式調整 */
-@media (max-width: 992px) {
-    .application-grid, .irb-grid {
-        grid-template-columns: repeat(2, 1fr); /* 平板變兩欄 */
-    }
-}
-
-@media (max-width: 600px) {
-    .application-grid, .irb-grid {
-        grid-template-columns: 1fr; /* 手機變單欄 */
-    }
-}
-
 /* ==================================== */
-/* 09. 關於我們頁 (About.html) 專屬樣式 - 里程碑修正版 */
+/* 09. 關於我們頁 (About.html) 專屬樣式 */
 /* ==================================== */
 
-/* 核心價值 (四個方塊) */
 .values-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -803,41 +690,22 @@ header {
     border-radius: 8px;
     background-color: var(--light-gray);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: background-color 0.3s;
     text-align: center;
     border-top: 4px solid var(--secondary-blue);
 }
 
-.value-card:hover {
-    background-color: #e9ecef;
-}
-
-.value-card .value-icon {
-    font-size: 2.5em;
-    color: var(--accent-red);
-    margin-bottom: 10px;
-}
-
-.value-card h4 {
-    color: var(--primary-blue);
-    font-size: 1.2em;
-    font-weight: 700;
-}
-
-/* --- 歷史里程碑 (橫向時間軸) 修正 --- */
 .milestone-timeline {
     display: flex;
-    overflow-x: auto; /* 允許橫向滾動 */
+    overflow-x: auto; 
     padding-bottom: 30px;
     position: relative;
     padding-top: 20px; 
 }
 
-/* 1. 調整中間灰色線條的位置，使其下移以配合圓點 */
 .milestone-timeline::before {
     content: '';
     position: absolute;
-    top: 72px; /* 修正：下移至年份與文字中間 */
+    top: 72px; 
     left: 0;
     right: 0;
     height: 4px;
@@ -846,29 +714,24 @@ header {
 }
 
 .milestone-item {
-    min-width: 280px; /* 稍微加寬卡片 */
+    min-width: 280px; 
     text-align: center;
-    padding: 20px; /* 增加內部留白 */
+    padding: 20px; 
     position: relative;
     z-index: 2;
     background-color: var(--white);
     border-radius: 12px;
-    margin: 0 15px; /* 增加卡片間距 */
-    box-shadow: var(--shadow-light);
+    margin: 0 15px; 
     flex-shrink: 0; 
-    border: 1px solid rgba(0,0,0,0.03);
 }
 
-/* 2. 調整年份樣式，增加下方邊距給圓點 */
 .milestone-item .milestone-year {
     font-size: 1.5em;
     font-weight: 700;
     color: var(--accent-red);
-    margin-top: 0;
-    margin-bottom: 45px; /* 關鍵修正：增加底部間距，撐開空間給圓點 */
+    margin-bottom: 45px; 
 }
 
-/* 3. 調整圓點位置，使其位於年份與文字的空隙中 */
 .milestone-item .milestone-dot {
     width: 20px;
     height: 20px;
@@ -876,18 +739,9 @@ header {
     border: 4px solid var(--white);
     border-radius: 50%;
     position: absolute;
-    top: 62px; /* 修正：精準定位在空隙中央 (配合線條 top: 72px 中心) */
+    top: 62px; 
     left: 50%;
     transform: translateX(-50%);
-    box-shadow: 0 0 0 4px var(--light-gray); 
-}
-
-/* 4. 調整文字樣式 */
-.milestone-item p {
-    font-size: 1em;
-    color: #555;
-    line-height: 1.6;
-    margin: 0; /* 移除預設邊距 */
 }
 
 /* ==================================== */
@@ -900,258 +754,380 @@ footer {
     text-align: center;
     padding: 30px 20px;
     font-size: 0.9em;
-    margin-top: 50px; /* 確保與內容區塊有間距 */
+    margin-top: 50px; 
 }
 
 footer .footer-links a {
     color: var(--white);
     margin: 0 10px;
-    padding: 5px 0;
-    border-bottom: 1px solid transparent;
-    transition: border-bottom-color 0.3s;
 }
-
-footer .footer-links a:hover {
-    border-bottom-color: var(--white);
-    color: var(--white); /* 確保 hover 時文字顏色不變 */
-}
-
-footer p {
-    margin: 8px 0;
-    line-height: 1.5;
-}
-
 
 /* ==================================== */
-/* 11. RWD 響應式設計 */
+/* 11. 輪播區塊 (Carousel) 樣式 */
 /* ==================================== */
 
-@media (max-width: 992px) {
-    .navbar {
-        padding: 15px 20px;
-    }
-    .product-item {
-        flex-direction: column;
-    }
-    .product-item img {
-        max-width: 80%;
-    }
-    .grid-3, .values-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .contact-grid { 
-        flex-direction: column; 
-    }
-    .irb-card { 
-        flex-direction: column; 
-        text-align: center; 
-    }
-    .irb-doctor { 
-        order: -1; 
-        margin-bottom: 15px; 
-    }
-    .irb-info p { 
-        text-align: left; 
-    }
-    .application-grid { /* 臨床應用頁在中小螢幕時調整為 2x2 */
-        grid-template-columns: repeat(2, 1fr);
-    }
+.carousel-container {
+    width: 100%;
+    height: 80vh; 
+    min-height: 400px;
+    overflow: hidden; 
+    position: relative;
+    margin-top: 60px; 
+}
+
+.carousel-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+}
+
+.carousel-slide {
+    flex-shrink: 0; 
+    width: 100vw; 
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: var(--white);
+}
+
+.carousel-slide::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.slide-content {
+    position: relative;
+    z-index: 2;
+    padding: 20px;
+    max-width: 800px;
+}
+
+.carousel-dots {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    gap: 10px;
+}
+
+.dot {
+    width: 12px; height: 12px;
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.dot.active {
+    background-color: var(--white);
+    transform: scale(1.3);
+}
+
+/* ==================================== */
+/* 12. 維修 QA 專區樣式 (新加入) */
+/* ==================================== */
+
+.qa-container {
+    max-width: 900px;
+    margin: 20px auto;
+}
+
+.qa-item {
+    margin-bottom: 15px;
+    border: 1px solid #e0e4e8;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
+    transition: box-shadow 0.3s ease;
+}
+
+.qa-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.qa-question {
+    width: 100%;
+    padding: 18px 25px;
+    background-color: #fff;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    text-align: left;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--primary-blue);
+    transition: background-color 0.2s;
+}
+
+.qa-question:hover {
+    background-color: #f0f7ff;
+}
+
+.qa-question::after {
+    content: '+';
+    font-size: 1.5em;
+    color: var(--secondary-blue);
+    transition: transform 0.3s ease;
+}
+
+.qa-item.active .qa-question::after {
+    transform: rotate(45deg);
+    content: '+'; /* 旋轉 45 度變成 X */
+}
+
+.qa-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, padding 0.3s ease;
+    background-color: #fafbfc;
+    border-top: 1px solid transparent;
+}
+
+.qa-item.active .qa-answer {
+    max-height: 500px; /* 確保足夠顯示內容 */
+    padding: 20px 25px;
+    border-top: 1px solid #eee;
+}
+
+.qa-answer p {
+    margin: 0;
+    color: #444;
+    line-height: 1.8;
+}
+
+/* 維修按鈕額外樣式 (如果有需要與其他頁面區分) */
+.maintenance-btn {
+    background-color: var(--primary-blue);
+    color: var(--white) !important;
+    padding: 8px 18px !important;
+    border-radius: 4px;
+    font-weight: 600;
 }
 
 @media (max-width: 768px) {
-    .navbar {
-        flex-direction: column;
-        align-items: flex-start;
+    .qa-question {
+        padding: 15px 20px;
+        font-size: 1em;
     }
-    .nav-links {
-        margin-top: 10px;
-        flex-direction: column;
-        width: 100%;
+    .qa-answer {
+        padding: 0 20px;
     }
-    .nav-links a {
-        margin: 5px 0;
-        width: 100%;
-        text-align: center;
+    .qa-item.active .qa-answer {
+        padding: 15px 20px;
     }
-    .inquiry-btn {
-        margin: 10px auto 0;
-        width: 80%;
-    }
-    .hero-content h1 {
-        font-size: 2.5em;
-    }
-    .section-title {
-        font-size: 2em;
-    }
-    .content-section {
-        padding: 30px 20px;
-    }
-    .values-grid {
-        grid-template-columns: 1fr;
-    }
-
-    /* News.html RWD 調整 */
-    .news-section .news-item {
-        flex-wrap: wrap; 
-        padding: 10px 0;
-    }
-    .news-item .news-date {
-        width: 100%;
-        margin-bottom: 5px;
-        text-align: left;
-    }
-    .news-item .news-title {
-        padding: 0;
-        width: calc(100% - 100px);
-    }
-    .news-item .detail-link {
-        margin-left: auto; 
-    }
-    .application-grid { /* 臨床應用頁在小螢幕時調整為 1x4 */
-        grid-template-columns: 1fr;
-    }
-
 }
 
-<!-- 輪播專用 CSS 樣式 -->
-  
-        /* 設置基本變數 (確保輪播樣式能取用) */
-        :root {
-            --primary-blue: #007bff;
-            --white: #ffffff;
-            --dark-blue: #0A3C6B;
-            --hero-blue: #004b80; /* 假設您原有的 hero 顏色 */
-        }
+/* ==================================== */
+/* XX. 維修專區 QA 樣式 (由 maintenance.html 整合而來) */
+/* ==================================== */
 
-        /* ------------------------------------- */
-        /* 輪播區塊 (Carousel) 專用 CSS 樣式 */
-        /* ------------------------------------- */
-        .carousel-container {
-            width: 100%;
-            /* 設置高度，通常 Banner 會佔用較大空間 */
-            height: 80vh;
-            min-height: 400px;
-            overflow: hidden; /* 隱藏超出視圖的圖片 */
-            position: relative;
-            /* 讓輪播緊接在導航列下方 (假設導航列高度約 60px) */
-            margin-top: 60px;
-        }
+.qa-section {
+    padding: 60px 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
 
-        .carousel-track {
-            display: flex;
-            height: 100%;
-            /* 平滑過渡效果 */
-            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
+.qa-card {
+    background: var(--white);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    padding: 40px;
+}
 
-        .carousel-slide {
-            flex-shrink: 0; /* 防止圖片被壓縮 */
-            width: 100vw; /* 確保每個 Slide 佔滿整個視口寬度 */
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            color: var(--white);
-            text-align: center;
-        }
+.qa-header {
+    text-align: center;
+    margin-bottom: 40px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 20px;
+}
 
-        /* 疊加層：用於讓文字更清晰 */
-        .carousel-slide::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* 半透明深色疊加層 */
-            z-index: 1;
-        }
+.qa-header h2 {
+    color: var(--primary-blue);
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
 
-        .slide-content {
-            position: relative;
-            z-index: 2;
-            padding: 20px;
-            max-width: 800px; /* 限制內容寬度 */
-        }
+.qa-item {
+    margin-bottom: 25px;
+    padding: 20px;
+    border-radius: 10px;
+    background: #fcfdfe;
+    border-left: 5px solid var(--secondary-blue);
+    transition: transform 0.2s;
+}
 
-        .slide-content h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
+.qa-item:hover {
+    transform: translateX(5px);
+    background: #f0f7ff;
+}
 
-        .slide-content p {
-            font-size: 1.5rem;
-            font-weight: 300;
-            margin-bottom: 30px;
-        }
+.question {
+    font-weight: 700;
+    color: var(--primary-blue);
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
 
-        /* 導航點 (Dots) 樣式 */
-        .carousel-dots {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            display: flex;
-            gap: 10px;
-        }
+.question::before {
+    content: "Q";
+    background: var(--primary-blue);
+    color: white;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 12px;
+    font-size: 0.9rem;
+}
 
-        .dot {
-            width: 12px;
-            height: 12px;
-            background-color: rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.3s;
-        }
+.answer {
+    color: #444;
+    padding-left: 40px;
+    line-height: 1.8;
+}
 
-        .dot.active {
-            background-color: var(--white);
-            transform: scale(1.3);
-        }
+/* 針對行動裝置的 QA 調整 */
+@media (max-width: 768px) {
+    .qa-card {
+        padding: 20px;
+    }
+    .qa-header h2 {
+        font-size: 1.5rem;
+    }
+    .question {
+        font-size: 1.1rem;
+    }
+}
 
-        /* 保持原有 cta-button 風格 */
-        .cta-button {
-            display: inline-block;
-            background-color: #ff5722; /* 假設您原有的按鈕顏色 */
-            color: var(--white);
-            padding: 12px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.3s ease, transform 0.2s;
-        }
+.qa-section {
+    padding: 60px 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
 
-        .cta-button:hover {
-            background-color: #e64a19;
-            transform: translateY(-2px);
-        }
+.qa-card {
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    padding: 40px;
+    margin-bottom: 40px;
+}
 
-        /* 響應式設計 (手機) */
-        @media (max-width: 768px) {
-            .carousel-container {
-                height: 60vh;
-                margin-top: 50px;
-            }
-            .slide-content h1 {
-                font-size: 2rem;
-            }
-            .slide-content p {
-                font-size: 1.2rem;
-            }
-        }
- 
-	
+.qa-header {
+    text-align: center;
+    margin-bottom: 40px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 20px;
+}
 
+.qa-header h2 {
+    color: var(--primary-blue);
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
 
+.qa-item {
+    margin-bottom: 25px;
+    padding: 20px;
+    border-radius: 10px;
+    background: #fcfdfe;
+    border-left: 5px solid var(--secondary-blue);
+    transition: transform 0.2s;
+}
 
+.qa-item:hover {
+    transform: translateX(5px);
+    background: #f0f7ff;
+}
 
+.question {
+    font-weight: 700;
+    color: var(--primary-blue);
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
 
+.question::before {
+    content: "Q";
+    background: var(--primary-blue);
+    color: white;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-right: 12px;
+    font-size: 0.9rem;
+}
 
+.answer {
+    color: #444;
+    padding-left: 40px;
+    line-height: 1.8;
+}
 
+/* --- 特殊處理：線上維修申請區塊 --- */
+.repair-cta-section {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, #002d5e 100%);
+    color: white;
+    padding: 50px 30px;
+    border-radius: 15px;
+    text-align: center;
+    margin-top: 40px;
+    box-shadow: var(--shadow-hover);
+}
 
+.repair-cta-section h3 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
 
+.repair-cta-section p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+.repair-btn {
+    display: inline-block;
+    background-color: var(--white);
+    color: var(--primary-blue);
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.repair-btn:hover {
+    background-color: var(--secondary-blue);
+    color: var(--white);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 768px) {
+    .qa-card { padding: 20px; }
+    .qa-header h2 { font-size: 1.5rem; }
+    .repair-cta-section h3 { font-size: 1.5rem; }
+}
