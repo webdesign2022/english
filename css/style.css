@@ -1130,4 +1130,111 @@ footer .footer-links a {
     .qa-card { padding: 20px; }
     .qa-header h2 { font-size: 1.5rem; }
     .repair-cta-section h3 { font-size: 1.5rem; }
+
+}
+/* ==================================== */
+/* XX. 首頁輪播圖專用樣式 (新增) */
+/* ==================================== */
+
+.carousel-container {
+    width: 100%;
+    height: 80vh; 
+    min-height: 400px;
+    overflow: hidden;
+    position: relative;
+    background-color: var(--primary-blue);
+    margin-top: 70px; /* 避開固定導航列 */
+}
+
+.carousel-slide {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide {
+    min-width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* 遮罩層，增加文字可讀性 */
+.slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5));
+    z-index: 1;
+}
+
+.slide-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    padding: 0 20px;
+}
+
+.slide-content h1 {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.slide-content p {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+/* 輪播指示點 */
+.carousel-dots {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    gap: 12px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background-color: var(--white);
+    transform: scale(1.3);
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+    .carousel-container {
+        height: 60vh;
+        margin-top: 60px;
+    }
+    .slide-content h1 {
+        font-size: 2.2rem;
+    }
+    .slide-content p {
+        font-size: 1.1rem;
+    }
 }
