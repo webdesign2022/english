@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 全城尋寶戰 (測試版)</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <style>
+        /* --- 全局設置 --- */
+        body { font-family: 'Microsoft JhengHei', sans-serif; margin: 0; padding: 0; background: #000; color: white; overflow: hidden; }
+        #map { height: 100vh; width: 100%; z-index: 1; opacity: 0; transition: opacity 1s; } 
+        
+        /* --- 活動首頁 --- */
+        .landing-page {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            z-index: 9999; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 20px; box-sizing: border-box; transition: opacity 0.5s ease-out;
+        }
+        .landing-title { font-size: 2.5rem; color: #00ffcc; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 20px rgba(0, 255, 204, 0.5); }
+        .landing-desc { font-size: 1rem; color: #aaa; margin-bottom: 30px; line-height: 1.6; max-width: 600px; }
+        
+        .start-btn {
+            background: #ff0055; color: white; border: none; padding: 15px 40px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 50px;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.4); cursor: pointer; animation: pulse-btn 2s infinite;
+        }
+        @keyframes pulse-btn {
+            0% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 0, 85, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 0, 85, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 0, 85, 0.4); }
+        }
+        .mode-switch {
+            margin-top: 20px; padding: 5px 15px; border: 1px solid #444; border-radius: 20px;
+            background: transparent; color: #666; font-size: 0.8rem; cursor: pointer;
+        }
+
+        /* --- 測試按鈕 (懸浮於地圖右上角) --- */
+        .debug-zone {
+            position: fixed; top: 60px; right: 10px; z-index: 2000; /* 確保在地圖之上 */
+            display: none; /* 開始遊戲後才顯示 */
+            flex-direction: column; gap: 10px;
+        }
+        .debug-btn {
+            padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 0.8rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-align: right;
+        }
+
+        /* --- 頂部狀態列 --- */
+        .top-status-bar {
+            position: fixed; top: 0; left: 0; width: 100%; padding: 12px;
+            background: rgba(255, 152, 0, 0.95); color: #fff; text-align: center; z-index: 101;
+            font-size: 1rem; font-weight: bold; display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        /* --- HUD 面板 --- */
+        .hud-panel {
+            position: absolute; bottom: 0; left: 0; width: 100%; 
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 80%, rgba(0,0,0,0) 100%);
+            padding: 40px 20px 30px 20px; box-sizing: border-box; z-index: 100;
+            text-align: center; display: none; border-top: 1px solid rgba(0, 255, 204, 0.3);
+        }
+        .mini-bib {
+            width: 80px; height: 60px; margin: 0 auto 10px auto;
+            background: #222; border: 2px solid #fff; border-radius: 5px; 
+            overflow: hidden; position: relative; box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        }
+        .mini-bib img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 特效樣式 */
+        .theme-puzzle.step-0 img { clip-path: polygon(30% 30%, 70% 30%, 70% 70%, 30% 70%); transform: scale(0.8); filter: sepia(1); }
+        .theme-puzzle.step-1 img { clip-path: polygon(20% 20%, 80% 20%, 80% 80%, 20% 80%, 20% 50%, 0% 50%, 0% 20%); }
+        .theme-puzzle.step-2 img { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 60%, 20% 60%, 20% 0%); }
+        .theme-puzzle.step-3 img { clip-path: none; transform: none; filter: none; }
+        
+        .status-title { color: #00ffcc; font-size: 1.4rem; font-weight: bold; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .status-desc { color: #ddd; font-size: 1rem; margin-bottom: 15px; }
+        
+        .btn {
+            width: 100%; max-width: 400px; margin: 0 auto; padding: 15px; border-radius: 50px; border: none; 
+            font-weight: bold; font-size: 1.1rem;
+            background: #333; color: #666; transition: 0.3s; cursor: not-allowed;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn.active { 
+            background: #ff0055; color: white; cursor: pointer; 
+            animation: pulse 1s infinite; box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
+        }
+        .btn.qr-mode { background: #007bff; color: white; box-shadow: 0 0 20px rgba(0, 123, 255, 0.6); cursor: pointer; }
+
+        /* --- 彈出視窗 --- */
+        .overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column;
+            justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
+        }
+        .scratch-card {
+            width: 300px; height: 400px; background: #fff; border-radius: 10px;
+            position: relative; overflow: hidden; text-align: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .prize-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 1.5rem; color: #ff0055; font-weight: bold; width: 100%; z-index: 1; padding: 10px;
+        }
+        canvas { position: absolute; top: 0; left: 0; z-index: 2; cursor: crosshair; }
+        .final-card { width: 100%; max-width: 400px; text-align: center; color: white; }
+        .big-bib { width: 100%; aspect-ratio: 4/3; margin-bottom: 20px; border: 2px solid #00ffcc; border-radius: 10px; overflow: hidden; background: #222; }
+        .big-bib img { width: 100%; height: 100%; object-fit: cover; }
+        .input-box { width: 100%; padding: 12px; background: #222; border: 1px solid #555; color: white; margin: 10px 0; border-radius: 5px; text-align: center; font-size: 1rem; }
+
+        /* 地圖遮罩樣式 */
+        .mask-overlay { pointer-events: none; }
+        .pulse-marker { filter: drop-shadow(0 0 5px #00ffcc); animation: mapPulse 2s infinite; }
+        @keyframes mapPulse { 0% { stroke-opacity: 1; stroke-width: 0; } 100% { stroke-opacity: 0; stroke-width: 20px; } }
+    </style>
+</head>
+<body>
+
+    <div id="landing-page" class="landing-page">
+        <h1 class="landing-title">2026 全城尋寶戰</h1>
+        <p class="landing-desc" id="landing-desc">
+            歡迎加入新北運動博覽會！<br>
+            您的號碼布已經損毀...<br>
+            請前往新莊體育園區的 3 個能量點，<br>
+            修復數據並領取完賽獎勵！
+        </p>
+        <button class="start-btn" onclick="startGame()">🚀 啟動任務 (GPS)</button>
+        <button class="mode-switch" onclick="toggleMode()">切換至：雨天室內模式 (QR Code)</button>
+        <p style="margin-top:20px; font-size:0.8rem; color:#666;" id="gps-hint">請允許 GPS 定位以進行遊戲</p>
+    </div>
+
+    <div id="map"></div>
+    <div id="status-bar" class="top-status-bar"></div>
+
+    <div id="debug-zone" class="debug-zone">
+        <button class="debug-btn" style="background:rgba(0,0,0,0.7); color:#fff;" onclick="test_cheatJump()">⚡ 瞬移下一站</button>
+        <button class="debug-btn" style="background:rgba(211, 47, 47, 0.8); color:#fff;" onclick="test_resetAll()">🔴 重置進度</button>
+    </div>
+
+    <div class="hud-panel" id="hud-panel">
+        <div class="mini-bib" id="mini-bib-container">
+            <img src="/static/template.jpg" id="mini-img" onerror="this.src='/static/template.jpg'">
+        </div>
+        <div class="status-title" id="hud-title">系統連線中...</div>
+        <div class="status-desc" id="hud-desc">等待衛星定位</div>
+        <button id="action-btn" class="btn">🔒 移動中...</button>
+    </div>
+
+    <div id="overlay-scratch" class="overlay">
+        <h2 style="color:#00ffcc; margin-bottom:10px;">🎉 任務完成！</h2>
+        <p style="color:#aaa; margin-bottom:20px;">刮開銀漆，修復您的號碼布</p>
+        <div class="scratch-card">
+            <div class="prize-text" id="prize-content">載入中...</div>
+            <canvas id="scratch-canvas" width="300" height="400"></canvas>
+        </div>
+        <button id="claim-btn" class="btn active" style="margin-top:20px; display:none;" onclick="claimPrize()">🎁 領取並修復號碼布</button>
+    </div>
+
+    <div id="overlay-final" class="overlay">
+        <div class="final-card">
+            <h2 style="color:#00ffcc; margin:0 0 10px 0;">🎉 恭喜完賽！</h2>
+            <p style="color:#aaa; font-size:0.9rem; margin-bottom:20px;">請工作人員協助拍攝照片</p>
+            <div class="big-bib"><img src="/static/template.jpg" id="big-img"></div>
+            <div id="final-form">
+                <input type="text" id="final-text" class="input-box" placeholder="輸入您的完賽宣言" maxlength="12">
+                <label for="final-photo" class="btn active" style="margin-bottom:10px; background:#333; color:#fff; border:1px solid #555;">📷 開啟相機 / 上傳照片</label>
+                <input type="file" id="final-photo" accept="image/*" style="display:none" onchange="handlePhotoSelect(this)">
+                <button id="submit-btn" class="btn active" style="background:#ff0055; color:white;" onclick="submitFinal()">🚀 生成完賽號碼布</button>
+            </div>
+            <div id="result-area" style="display:none;">
+                <h1 style="color:#ff0055; font-size:2.5rem; margin:10px 0;" id="bib-number">NO.-----</h1>
+                <p style="color:#00ffcc;">請長按上方圖片儲存您的證書</p>
+                <button class="debug-btn" style="background:#333; color:#fff; margin-top:20px; width:100%; text-align:center;" onclick="test_resetAll()">🔄 回到首頁 (重置測試)</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // ==========================================
+        // 🔧 系統設定區 (管理者請改這裡)
+        // ==========================================
+        
+        let GAME_MODE = 'GPS'; // 預設模式
+
+        // 1. 站點設定 (包含 GPS 座標與 雨天 QR 題目)
+        const STATIONS = [
+            { 
+                lat: 25.0405, lng: 121.4485, name: "第 1 站：景觀湖", hint: "前往景觀湖", 
+                qrCode: "STATION_1", // 雨天掃碼內容
+                question: "新莊體育園區的景觀湖，主要功能除了景觀還有什麼？", 
+                answer: "滯洪", // 雨天答案關鍵字
+                nextHint: "太棒了！前往【林蔭大道】" 
+            },
+            { 
+                lat: 25.0415, lng: 121.4495, name: "第 2 站：林蔭大道", hint: "前往林蔭大道", 
+                qrCode: "STATION_2", 
+                question: "2026 新北運動博覽會的主題色系是什麼？", 
+                answer: "黑", 
+                nextHint: "前往【陽光草坪】" 
+            },
+            { 
+                lat: 25.0425, lng: 121.4505, name: "第 3 站：陽光草坪", hint: "前往陽光草坪", 
+                qrCode: "STATION_3", 
+                question: "請問要在哪裡領取完賽證明？", 
+                answer: "體育館", 
+                nextHint: "前往【新莊體育館】內" 
+            },
+            { 
+                lat: 25.0435, lng: 121.4515, name: "終點站：體育館服務台", hint: "請進入體育館內", 
+                qrCode: "FINISH", 
+                question: "無需回答", answer: "any", 
+                nextHint: "完賽！" 
+            }
+        ];
+
+        // 2. 獎品庫存設定 (系統自動計算機率)
+        const PRIZE_CONFIG = {
+            0: [ // 第 1 站
+                { name: "新北幣 10 點", count: 280 }, 
+                { name: "運動飲料", count: 20 }
+            ],
+            1: [ // 第 2 站
+                { name: "新北幣 20 點", count: 250 }, 
+                { name: "能量膠", count: 50 }
+            ],
+            2: [ // 第 3 站
+                { name: "新北幣 50 點", count: 290 }, 
+                { name: "iPad (大獎)", count: 10 }
+            ]
+        };
+
+        // 3. 活動地圖範圍 (修改這裡可調整亮區)
+        const PARK_BOUNDS = [
+            [25.0460, 121.4450], // 左上
+            [25.0460, 121.4550], // 右上
+            [25.0380, 121.4550], // 右下
+            [25.0380, 121.4450]  // 左下
+        ];
+
+        // ==========================================
+        // 核心程式碼
+        // ==========================================
+        let map, userMarker, targetMarker;
+        let state = { uuid: null, theme: 'puzzle', step: 0 };
+        let isNear = false;
+        let manualOverride = false; 
+
+        function initData() {
+            if(!localStorage.getItem('runner_uuid')) localStorage.setItem('runner_uuid', 'R-'+Math.floor(Math.random()*10000));
+            state.uuid = localStorage.getItem('runner_uuid');
+
+            if(!localStorage.getItem('runner_theme')) {
+                const themes = ['puzzle', 'mosaic', 'glitch'];
+                localStorage.setItem('runner_theme', themes[Math.floor(Math.random()*themes.length)]);
+            }
+            state.theme = localStorage.getItem('runner_theme');
+            
+            let savedStep = localStorage.getItem('runner_progress');
+            state.step = savedStep ? parseInt(savedStep, 10) : 0;
+            if(isNaN(state.step)) state.step = 0;
+            if(state.step >= STATIONS.length) state.step = STATIONS.length - 1; 
+
+            updateVisuals();
+            initMap(); 
+        }
+
+        function toggleMode() {
+            const btn = document.querySelector('.start-btn');
+            const hint = document.getElementById('gps-hint');
+            const desc = document.getElementById('landing-desc');
+            
+            if (GAME_MODE === 'GPS') {
+                GAME_MODE = 'QR';
+                btn.innerText = "☔ 啟動任務 (室內 QR 模式)";
+                btn.style.background = "#007bff";
+                btn.style.boxShadow = "0 0 20px rgba(0, 123, 255, 0.6)";
+                hint.innerText = "雨天備案模式：請尋找現場 QR Code 掃描";
+                desc.innerHTML = "外面下雨了...<br>請進入室內場館，<br>尋找隱藏的 QR Code 回答問題！";
+            } else {
+                GAME_MODE = 'GPS';
+                btn.innerText = "🚀 啟動任務 (GPS)";
+                btn.style.background = "#ff0055";
+                btn.style.boxShadow = "0 0 20px rgba(255, 0, 85, 0.4)";
+                hint.innerText = "請允許 GPS 定位以進行遊戲";
+                desc.innerHTML = "歡迎加入新北運動博覽會！<br>請前往新莊體育園區的 3 個能量點...<br>(戶外探索模式)";
+            }
+        }
+
+        function startGame() {
+            document.getElementById('landing-page').style.display = 'none';
+            document.getElementById('hud-panel').style.display = 'block';
+            document.getElementById('map').style.opacity = '1';
+            
+            // 顯示測試按鈕
+            document.getElementById('debug-zone').style.display = 'flex';
+            
+            updateHUD(false, 0); 
+        }
+
+        function initMap() {
+            // 擴大視野範圍
+            const viewBounds = L.latLngBounds(L.latLng(25.0320, 121.4400), L.latLng(25.0500, 121.4600));
+
+            map = L.map('map', {
+                center: [STATIONS[0].lat, STATIONS[0].lng],
+                zoom: 16, minZoom: 15,
+                maxBounds: viewBounds, maxBoundsViscosity: 0.5,
+                zoomControl: false 
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap', subdomains: 'abcd', maxZoom: 20
+            }).addTo(map);
+
+            // 繪製遮罩與亮區
+            const worldCoords = [[-90, -180], [90, -180], [90, 180], [-90, 180]];
+            L.polygon([worldCoords, PARK_BOUNDS], { color: 'transparent', fillColor: '#000', fillOpacity: 0.8, className: 'mask-overlay' }).addTo(map);
+            L.polygon(PARK_BOUNDS, { color: '#00ffcc', weight: 3, fillColor: 'transparent', fillOpacity: 0, dashArray: '10, 10' }).addTo(map);
+
+            map.fitBounds(L.latLngBounds(PARK_BOUNDS), { paddingBottomRight: [0, 300] });
+
+            userMarker = L.circleMarker([0,0], { color: '#fff', fillColor: '#00ffcc', fillOpacity: 1, radius: 8, weight: 3 }).addTo(map).bindPopup("您的位置");
+            userMarker._path.classList.add("pulse-marker");
+
+            if(navigator.geolocation) {
+                navigator.geolocation.watchPosition(updateGPS, handleGPSError, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 });
+            }
+            updateHUD(false, 999);
+        }
+
+        function handleGPSError(err) {
+            console.warn("GPS Error:", err);
+            if(GAME_MODE === 'GPS') document.getElementById('hud-desc').innerText = "定位訊號微弱 (請到戶外)";
+        }
+
+        function updateGPS(pos) {
+            if (manualOverride && !pos.manual) return; 
+
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            userMarker.setLatLng([lat, lng]);
+
+            if (GAME_MODE === 'QR') return;
+
+            if(state.step < STATIONS.length) {
+                const target = STATIONS[state.step];
+                const dist = getDistance(lat, lng, target.lat, target.lng);
+
+                if(!targetMarker) targetMarker = L.marker([target.lat, target.lng]).addTo(map).bindPopup(target.name).openPopup();
+                else targetMarker.setLatLng([target.lat, target.lng]);
+
+                if(dist < 25) { 
+                    if(!isNear) { isNear = true; if(navigator.vibrate) navigator.vibrate([200]); }
+                    updateHUD(true, dist);
+                } else {
+                    isNear = false; updateHUD(false, dist);
+                }
+            } else {
+                if(targetMarker) map.removeLayer(targetMarker);
+            }
+        }
+
+        function updateHUD(ready, dist) {
+            const title = document.getElementById('hud-title');
+            const desc = document.getElementById('hud-desc');
+            const btn = document.getElementById('action-btn');
+            const statusBar = document.getElementById('status-bar');
+
+            if(state.step === STATIONS.length - 1) {
+                statusBar.style.display = 'block'; statusBar.innerHTML = "🏆 任務已完成！請進入體育館";
+                if(ready || GAME_MODE === 'QR') {
+                    title.innerText = "📍 已抵達終點"; desc.innerText = "請向服務台出示畫面"; desc.style.color = '#00ffcc';
+                    btn.className = "btn active"; btn.innerHTML = "🏁 點此生成完賽證書"; btn.onclick = showFinalStage;
+                    if(GAME_MODE === 'QR') {
+                         btn.className = "btn active qr-mode"; btn.innerHTML = "📷 掃描終點 QR Code"; btn.onclick = () => handleQRScan(true);
+                    }
+                } else {
+                    title.innerText = "前往：體育館服務台"; desc.innerText = `距離終點還差 ${Math.round(dist)}m`; desc.style.color = '#aaa';
+                    btn.className = "btn"; btn.innerHTML = "🔒 移動中..."; btn.onclick = null;
+                }
+                return;
+            }
+
+            statusBar.style.display = 'none';
+            const target = STATIONS[state.step];
+
+            if (GAME_MODE === 'QR') {
+                title.innerText = `目標：${target.name}`; desc.innerText = "請尋找關卡 QR Code 並掃描"; desc.style.color = '#007bff';
+                btn.className = "btn active qr-mode"; btn.innerHTML = "📷 掃描任務 QR Code"; btn.onclick = () => handleQRScan(false);
+            } else {
+                if(ready) {
+                    title.innerText = `📍 已抵達：${target.name}`; desc.innerText = "訊號源已鎖定！"; desc.style.color = '#00ffcc';
+                    btn.className = "btn active"; btn.innerHTML = "🎁 刮開獲取獎勵"; btn.onclick = openScratchCard;
+                } else {
+                    title.innerText = `目標：${target.name}`; desc.innerText = `${target.hint} (${Math.round(dist)}m)`; desc.style.color = '#ccc';
+                    btn.className = "btn"; btn.innerHTML = "🔒 移動中..."; btn.onclick = null;
+                }
+            }
+        }
+
+        function handleQRScan(isFinal) {
+            const target = STATIONS[state.step];
+            const inputCode = prompt(`[模擬相機] 請掃描 QR Code\n(提示：請輸入 ${target.qrCode})`);
+            
+            if (inputCode === target.qrCode) {
+                if (isFinal) { showFinalStage(); return; }
+                const userAnswer = prompt(`✅ 掃描成功！\n\n【題目】\n${target.question}\n\n請輸入答案：`);
+                if (userAnswer && userAnswer.includes(target.answer)) {
+                    alert("🎉 答對了！獲得獎勵資格！"); openScratchCard();
+                } else {
+                    alert("❌ 答案不正確，請再試一次。");
+                }
+            } else {
+                alert("❌ QR Code 錯誤！");
+            }
+        }
+
+        function getPrizeFromPool() {
+            const poolConfig = PRIZE_CONFIG[state.step] || PRIZE_CONFIG[0];
+            let totalCount = 0; poolConfig.forEach(p => totalCount += p.count);
+            let luckyNum = Math.floor(Math.random() * totalCount);
+            let currentSum = 0;
+            for (let item of poolConfig) {
+                currentSum += item.count;
+                if (luckyNum < currentSum) return item.name;
+            }
+            return poolConfig[0].name;
+        }
+
+        function openScratchCard() {
+            resetCanvas();
+            const prize = getPrizeFromPool();
+            const claimBtn = document.getElementById('claim-btn');
+            claimBtn.style.display = 'none'; claimBtn.disabled = false; claimBtn.innerText = "🎁 領取並修復號碼布";
+            claimBtn.setAttribute('data-prize', prize); claimBtn.onclick = claimPrize; 
+            document.getElementById('prize-content').innerHTML = `恭喜獲得<br><span style="color:#ff3e3e; font-size:2rem; font-weight:bold;">${prize}</span>`;
+            document.getElementById('overlay-scratch').style.display = 'flex';
+        }
+
+        function resetCanvas() {
+            const canvas = document.getElementById('scratch-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 300; canvas.height = 400;
+            ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = '#C0C0C0'; ctx.fillRect(0, 0, 300, 400);
+            ctx.font = "20px Microsoft JhengHei"; ctx.fillStyle = "#666"; ctx.textAlign = "center"; ctx.fillText("請刮開此處", 150, 200);
+            initScratchEvents(canvas, ctx);
+        }
+
+        function initScratchEvents(canvas, ctx) {
+            let isDrawing = false; let scratchedDots = 0;
+            const scratch = (x, y) => {
+                ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI * 2); ctx.fill();
+                if (document.getElementById('claim-btn').style.display === 'none') {
+                    scratchedDots++; if(scratchedDots > 20) document.getElementById('claim-btn').style.display = 'block';
+                }
+            };
+            const getPos = (e) => {
+                const r = canvas.getBoundingClientRect();
+                return { x: (e.touches ? e.touches[0].clientX : e.clientX) - r.left, y: (e.touches ? e.touches[0].clientY : e.clientY) - r.top };
+            };
+            canvas.onmousedown = () => isDrawing = true; canvas.onmouseup = () => isDrawing = false;
+            canvas.onmousemove = (e) => { if(isDrawing) scratch(getPos(e).x, getPos(e).y); };
+            canvas.ontouchstart = (e) => { isDrawing = true; }; canvas.ontouchend = () => isDrawing = false;
+            canvas.ontouchmove = (e) => { e.preventDefault(); if(isDrawing) scratch(getPos(e).x, getPos(e).y); };
+        }
+
+        function claimPrize() {
+            const btn = document.getElementById('claim-btn');
+            if(btn.disabled) return;
+            const prizeName = btn.getAttribute('data-prize');
+            btn.disabled = true; btn.innerText = "入庫中...";
+
+            setTimeout(() => {
+                document.getElementById('overlay-scratch').style.display = 'none';
+                let myPrizes = JSON.parse(localStorage.getItem('runner_prize_list') || "[]");
+                myPrizes.push(prizeName);
+                localStorage.setItem('runner_prize_list', JSON.stringify(myPrizes));
+                
+                state.step++; localStorage.setItem('runner_progress', state.step);
+                updateVisuals();
+                if(targetMarker) { map.removeLayer(targetMarker); targetMarker = null; }
+                isNear = false;
+                
+                if (state.step === STATIONS.length - 1) alert("🛑 任務全數完成！\n\n👉 請移動至「新莊體育館」內");
+                updateHUD(false, 0);
+            }, 500);
+        }
+
+        function showFinalStage() {
+            document.getElementById('overlay-final').style.display = 'flex';
+            const imgEl = document.getElementById('big-img');
+            imgEl.src = `/static/template_${state.theme}.jpg`;
+            imgEl.onerror = function() { this.src = '/static/template.jpg'; };
+        }
+
+        function handlePhotoSelect(input) {
+            const label = document.querySelector('label[for="final-photo"]');
+            if(input.files && input.files[0]) label.innerText = "✅ 照片已就緒";
+        }
+
+        function submitFinal() {
+            const btn = document.getElementById('submit-btn'); const txt = document.getElementById('final-text');
+            const photoInput = document.getElementById('final-photo'); 
+            if(!txt.value) { alert("請輸入宣言"); return; }
+            btn.innerText = "雲端合成中..."; btn.disabled = true;
+
+            const fd = new FormData();
+            fd.append('userId', state.uuid); fd.append('theme', state.theme); fd.append('text', txt.value);
+            fd.append('prizes', localStorage.getItem('runner_prize_list') || "[]"); 
+            if(photoInput && photoInput.files[0]) fd.append('photo', photoInput.files[0]);
+
+            fetch('/generate', { method: 'POST', body: fd }).then(res => res.json()).then(data => {
+                if(data.status === 'success') {
+                    document.getElementById('big-img').src = data.imageUrl + '?t=' + Date.now();
+                    document.getElementById('final-form').style.display = 'none';
+                    document.getElementById('result-area').style.display = 'block';
+                    document.getElementById('bib-number').innerText = `NO.${data.bibNumber}`;
+                    document.getElementById('hud-panel').style.display = 'none';
+                    document.getElementById('status-bar').style.display = 'none';
+                } else { alert("錯誤：" + data.message); btn.disabled = false; btn.innerText = "🚀 生成完賽號碼布"; }
+            }).catch(err => { alert("連線錯誤：" + err); btn.disabled = false; btn.innerText = "🚀 生成完賽號碼布"; });
+        }
+
+        function updateVisuals() {
+            let s = state.step;
+            let visualStep = s;
+            if(s >= STATIONS.length) visualStep = 3; else if(s >= 3) visualStep = 2; 
+            document.getElementById('mini-bib-container').className = `mini-bib theme-${state.theme} step-${visualStep}`;
+            const miniImg = document.getElementById('mini-img');
+            miniImg.src = (s >= STATIONS.length) ? `/static/template_${state.theme}.jpg` : '/static/template.jpg';
+            miniImg.onerror = function(){ this.src = '/static/template.jpg'; };
+        }
+
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; 
+            const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180;
+            const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        // ==========================================
+        // 🛠️ 測試工具函式
+        // ==========================================
+        function test_resetAll() {
+            if(confirm("⚠️ 確定要刪除所有進度嗎？")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function test_cheatJump() {
+            if (state.step >= STATIONS.length) {
+                alert("已經是最後一站了！");
+                return;
+            }
+            if (GAME_MODE !== 'GPS') {
+                alert("請先切換回戶外 GPS 模式才能使用瞬移");
+                return;
+            }
+            
+            manualOverride = true; // 鎖定手動模式
+            const target = STATIONS[state.step];
+            
+            // 模擬 GPS 更新
+            updateGPS({
+                coords: { latitude: target.lat, longitude: target.lng },
+                manual: true
+            });
+            
+            // 視角移動
+            map.flyTo([target.lat, target.lng], 18);
+            
+            alert(`⚡ [測試] 已瞬移至：${target.name}`);
+        }
+
+        window.onload = initData;
+    </script>
+</body>
+</html>
