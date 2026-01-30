@@ -38,13 +38,33 @@
 
         /* --- 測試按鈕 (懸浮於地圖右上角) --- */
         .debug-zone {
-            position: fixed; top: 60px; right: 10px; z-index: 2000; /* 確保在地圖之上 */
+            position: fixed; top: 90px; right: 10px; z-index: 2000; /* 在地圖與指北針之下 */
             display: none; /* 開始遊戲後才顯示 */
             flex-direction: column; gap: 10px;
         }
         .debug-btn {
             padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 0.8rem;
             box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-align: right;
+        }
+
+        /* --- 指北針樣式 --- */
+        .compass-container {
+            position: fixed; top: 20px; right: 20px; width: 60px; height: 60px;
+            background: rgba(0, 0, 0, 0.6); border: 2px solid #00ffcc; border-radius: 50%;
+            z-index: 2001; /* 最高層級 */
+            display: none; /* 開始後顯示 */
+            justify-content: center; align-items: center;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); transition: opacity 0.5s;
+        }
+        .compass-n { position: absolute; top: 2px; font-size: 12px; color: #00ffcc; font-weight: bold; z-index: 2; }
+        .compass-dial { width: 100%; height: 100%; position: relative; transition: transform 0.1s linear; }
+        .compass-arrow {
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 20px solid #ff3333;
+        }
+        .compass-tail {
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 20px solid #ccc;
         }
 
         /* --- 頂部狀態列 --- */
@@ -134,6 +154,14 @@
     <div id="map"></div>
     <div id="status-bar" class="top-status-bar"></div>
 
+    <div class="compass-container" id="compassBtn" onclick="requestCompassPermission()">
+        <div class="compass-n">N</div>
+        <div class="compass-dial" id="compassDial">
+            <div class="compass-arrow"></div>
+            <div class="compass-tail"></div>
+        </div>
+    </div>
+
     <div id="debug-zone" class="debug-zone">
         <button class="debug-btn" style="background:rgba(0,0,0,0.7); color:#fff;" onclick="test_cheatJump()">⚡ 瞬移下一站</button>
         <button class="debug-btn" style="background:rgba(211, 47, 47, 0.8); color:#fff;" onclick="test_resetAll()">🔴 重置進度</button>
@@ -183,53 +211,33 @@
         // 🔧 系統設定區 (管理者請改這裡)
         // ==========================================
         
-        let GAME_MODE = 'GPS'; // 預設模式
+        let GAME_MODE = 'GPS'; 
 
         // 1. 站點設定 (包含 GPS 座標與 雨天 QR 題目)
         const STATIONS = [
             { 
                 lat: 25.0405, lng: 121.4485, name: "第 1 站：景觀湖", hint: "前往景觀湖", 
-                qrCode: "STATION_1", // 雨天掃碼內容
-                question: "新莊體育園區的景觀湖，主要功能除了景觀還有什麼？", 
-                answer: "滯洪", // 雨天答案關鍵字
-                nextHint: "太棒了！前往【林蔭大道】" 
+                qrCode: "STATION_1", question: "新莊體育園區的景觀湖，主要功能除了景觀還有什麼？", answer: "滯洪", nextHint: "太棒了！前往【林蔭大道】" 
             },
             { 
                 lat: 25.0415, lng: 121.4495, name: "第 2 站：林蔭大道", hint: "前往林蔭大道", 
-                qrCode: "STATION_2", 
-                question: "2026 新北運動博覽會的主題色系是什麼？", 
-                answer: "黑", 
-                nextHint: "前往【陽光草坪】" 
+                qrCode: "STATION_2", question: "2026 新北運動博覽會的主題色系是什麼？", answer: "黑", nextHint: "前往【陽光草坪】" 
             },
             { 
                 lat: 25.0425, lng: 121.4505, name: "第 3 站：陽光草坪", hint: "前往陽光草坪", 
-                qrCode: "STATION_3", 
-                question: "請問要在哪裡領取完賽證明？", 
-                answer: "體育館", 
-                nextHint: "前往【新莊體育館】內" 
+                qrCode: "STATION_3", question: "請問要在哪裡領取完賽證明？", answer: "體育館", nextHint: "前往【新莊體育館】內" 
             },
             { 
                 lat: 25.0435, lng: 121.4515, name: "終點站：體育館服務台", hint: "請進入體育館內", 
-                qrCode: "FINISH", 
-                question: "無需回答", answer: "any", 
-                nextHint: "完賽！" 
+                qrCode: "FINISH", question: "無需回答", answer: "any", nextHint: "完賽！" 
             }
         ];
 
         // 2. 獎品庫存設定 (系統自動計算機率)
         const PRIZE_CONFIG = {
-            0: [ // 第 1 站
-                { name: "新北幣 10 點", count: 280 }, 
-                { name: "運動飲料", count: 20 }
-            ],
-            1: [ // 第 2 站
-                { name: "新北幣 20 點", count: 250 }, 
-                { name: "能量膠", count: 50 }
-            ],
-            2: [ // 第 3 站
-                { name: "新北幣 50 點", count: 290 }, 
-                { name: "iPad (大獎)", count: 10 }
-            ]
+            0: [ { name: "新北幣 10 點", count: 280 }, { name: "運動飲料", count: 20 } ],
+            1: [ { name: "新北幣 20 點", count: 250 }, { name: "能量膠", count: 50 } ],
+            2: [ { name: "新北幣 50 點", count: 290 }, { name: "iPad (大獎)", count: 10 } ]
         };
 
         // 3. 活動地圖範圍 (修改這裡可調整亮區)
@@ -294,33 +302,29 @@
             document.getElementById('hud-panel').style.display = 'block';
             document.getElementById('map').style.opacity = '1';
             
-            // 顯示測試按鈕
+            // 顯示指北針與測試工具
+            document.getElementById('compassBtn').style.display = 'flex';
             document.getElementById('debug-zone').style.display = 'flex';
             
             updateHUD(false, 0); 
         }
 
-    function initMap() {
-            // --- 1. 定義活動區域 ---
+        function initMap() {
             const parkLatLngs = PARK_BOUNDS.map(pt => L.latLng(pt[0], pt[1]));
             const parkBoundsObj = L.latLngBounds(parkLatLngs);
             
-            // --- 2. 關鍵修正 A：極大化活動邊界 (MaxBounds) ---
-            // 之前的 padding(0.5) 或 (1.0) 可能太小，導致地圖被「卡住」無法上移
-            // 這裡改成 pad(5.0)，給地圖極大的空間去移動，防止撞牆
+            // 關鍵修正：極大化邊界，防止地圖卡住無法上移
             const viewBounds = parkBoundsObj.pad(4.0); 
 
-            // --- 3. 初始化地圖 ---
-            // 優先以第一站為中心
             const centerLat = STATIONS[0] ? STATIONS[0].lat : parkBoundsObj.getCenter().lat;
             const centerLng = STATIONS[0] ? STATIONS[0].lng : parkBoundsObj.getCenter().lng;
 
             map = L.map('map', {
                 center: [centerLat, centerLng],
                 zoom: 16, 
-                minZoom: 14, // 允許稍微縮更小一點，避免框框太大塞不下
-                maxBounds: viewBounds, // 使用超大邊界
-                maxBoundsViscosity: 0.2, // 降低回彈阻力，手感更滑順
+                minZoom: 14,
+                maxBounds: viewBounds,
+                maxBoundsViscosity: 0.2,
                 zoomControl: false 
             });
 
@@ -328,43 +332,19 @@
                 attribution: '&copy; OpenStreetMap', subdomains: 'abcd', maxZoom: 20
             }).addTo(map);
 
-            // --- 4. 繪製遮罩與亮區 ---
-            // 黑色遮罩
             const worldCoords = [[-90, -180], [90, -180], [90, 180], [-90, 180]];
-            L.polygon([worldCoords, PARK_BOUNDS], { 
-                color: 'transparent', 
-                fillColor: '#000', 
-                fillOpacity: 0.8, 
-                className: 'mask-overlay' 
-            }).addTo(map);
+            L.polygon([worldCoords, PARK_BOUNDS], { color: 'transparent', fillColor: '#000', fillOpacity: 0.8, className: 'mask-overlay' }).addTo(map);
+            L.polygon(PARK_BOUNDS, { color: '#00ffcc', weight: 3, fillColor: 'transparent', fillOpacity: 0, dashArray: '10, 10' }).addTo(map);
 
-            // 亮綠色邊框
-            L.polygon(PARK_BOUNDS, { 
-                color: '#00ffcc', 
-                weight: 3, 
-                fillColor: 'transparent', 
-                fillOpacity: 0, 
-                dashArray: '10, 10' 
-            }).addTo(map);
-
-            // --- 5. 關鍵修正 B：強制將地圖重心頂到最上方 ---
-            // 計算螢幕高度的 65% (也就是把下半部 2/3 都當作禁區)
+            // 關鍵修正：強制地圖重心上移 (下方留白 65%)
             const bottomPadding = window.innerHeight * 0.65; 
-
             map.fitBounds(parkBoundsObj, { 
-                paddingTopLeft: [20, 80],     // 上方：留一點點空隙 (避免貼頂)
-                paddingBottomRight: [20, bottomPadding], // 下方：留巨大空隙 (強迫上移)
+                paddingTopLeft: [20, 80],
+                paddingBottomRight: [20, bottomPadding], 
                 animate: false 
             });
-            
-            // 補強措施：如果 fitBounds 算完還是不夠高，我們手動再往南平移一點點 (把視角往北推)
-            // 這樣可以確保框框絕對不會被壓在下面
-            setTimeout(() => {
-                map.panBy([0, window.innerHeight * 0.1]); 
-            }, 100);
+            setTimeout(() => { map.panBy([0, window.innerHeight * 0.1]); }, 100);
 
-
-            // --- 6. 玩家定位點 ---
             userMarker = L.circleMarker([0,0], { color: '#fff', fillColor: '#00ffcc', fillOpacity: 1, radius: 8, weight: 3 }).addTo(map).bindPopup("您的位置");
             userMarker._path.classList.add("pulse-marker");
 
@@ -373,6 +353,7 @@
             }
             updateHUD(false, 999);
         }
+
         function handleGPSError(err) {
             console.warn("GPS Error:", err);
             if(GAME_MODE === 'GPS') document.getElementById('hud-desc').innerText = "定位訊號微弱 (請到戶外)";
@@ -617,7 +598,8 @@
             
             alert(`⚡ [測試] 已瞬移至：${target.name}`);
         }
-// ==========================================
+
+        // ==========================================
         // 💡 螢幕恆亮模組 (Wake Lock API)
         // ==========================================
         let wakeLock = null;
@@ -651,7 +633,35 @@
         document.addEventListener('click', requestWakeLock, { once: true });
         document.addEventListener('touchstart', requestWakeLock, { once: true });
 
+        // --- 指北針功能 ---
+        function handleOrientation(event) {
+            const dial = document.getElementById('compassDial');
+            let heading = 0;
+            if (event.webkitCompassHeading) {
+                heading = event.webkitCompassHeading;
+            } else if (event.alpha) {
+                heading = 360 - event.alpha;
+            }
+            dial.style.transform = `rotate(${-heading}deg)`;
+        }
 
+        function requestCompassPermission() {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            alert("指北針已校正！");
+                        } else {
+                            alert("需要權限才能使用指北針功能");
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('deviceorientation', handleOrientation);
+            }
+        }
+        window.addEventListener('deviceorientation', handleOrientation); // Android 自動啟動
 
         window.onload = initData;
     </script>
