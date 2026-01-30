@@ -300,25 +300,26 @@
             updateHUD(false, 0); 
         }
 
-      function initMap() {
-            // --- 1. 自動計算地圖邊界 (關鍵修正) ---
-            // 將陣列轉為 Leaflet 座標物件
+     function initMap() {
+            // --- 1. 定義活動區域 ---
             const parkLatLngs = PARK_BOUNDS.map(pt => L.latLng(pt[0], pt[1]));
             const parkBoundsObj = L.latLngBounds(parkLatLngs);
             
-            // 自動往外擴張 0.5 倍 (50%) 作為視角限制 (Invisible Wall)
-            // 這樣不管您把活動設在哪，地圖邊界都會自動跟著變！
-            const viewBounds = parkBoundsObj.pad(0.5); 
+            // --- 2. 關鍵修正：計算「可視範圍」邊界 (MaxBounds) ---
+            // 我們必須把「鎖定範圍」放得夠大，地圖才移得動
+            // pad(1.0) 代表把邊界往外擴張 100%，給地圖足夠的緩衝空間
+            const viewBounds = parkBoundsObj.pad(1.0); 
 
-            // --- 2. 初始化地圖 ---
-            // 檢查 STATIONS[0] 是否有設定，若無則自動使用活動區域中心
+            // --- 3. 初始化地圖 ---
+            // 如果有設定站點，優先以第一站為中心，否則用區域中心
             const centerLat = STATIONS[0] ? STATIONS[0].lat : parkBoundsObj.getCenter().lat;
             const centerLng = STATIONS[0] ? STATIONS[0].lng : parkBoundsObj.getCenter().lng;
 
             map = L.map('map', {
                 center: [centerLat, centerLng],
-                zoom: 16, minZoom: 15,
-                maxBounds: viewBounds, // 使用自動計算出來的邊界
+                zoom: 16, 
+                minZoom: 15,
+                maxBounds: viewBounds, // 設定較寬鬆的邊界
                 maxBoundsViscosity: 0.5,
                 zoomControl: false 
             });
@@ -327,8 +328,8 @@
                 attribution: '&copy; OpenStreetMap', subdomains: 'abcd', maxZoom: 20
             }).addTo(map);
 
-            // --- 3. 繪製遮罩與亮區 ---
-            // 黑色遮罩 (挖空的洞必須跟 PARK_BOUNDS 一樣)
+            // --- 4. 繪製遮罩與亮區 ---
+            // 黑色遮罩 (挖洞)
             const worldCoords = [[-90, -180], [90, -180], [90, 180], [-90, 180]];
             L.polygon([worldCoords, PARK_BOUNDS], { 
                 color: 'transparent', 
@@ -346,16 +347,18 @@
                 dashArray: '10, 10' 
             }).addTo(map);
 
-         // --- 修改處：讓地圖重心上移 ---
-            // 我們告訴地圖：畫面下方 45% 的高度是「被擋住的區域」，不要把東西放那邊
-            const paddingOffset = window.innerHeight * 0.45; 
+            // --- 5. 關鍵修正：強制將地圖重心上移 ---
+            // 計算螢幕高度的 55%
+            const bottomPadding = window.innerHeight * 0.55; 
 
+            // 告訴地圖：下方 55% 的區域被遮住了，請把框框塞在剩下的上方空間
             map.fitBounds(parkBoundsObj, { 
-                paddingTopLeft: [0, 50],    // 上方留一點點空隙 (50px)
-                paddingBottomRight: [0, paddingOffset] // 下方留一大塊空隙 (將地圖往上頂)
+                paddingTopLeft: [20, 50],     // 上方保留一點點空間
+                paddingBottomRight: [20, bottomPadding], // 下方保留巨大空間
+                animate: false // 關閉動畫，讓它一開啟就定位好
             });
 
-            // --- 4. 玩家定位點 ---
+            // --- 6. 玩家定位點 ---
             userMarker = L.circleMarker([0,0], { color: '#fff', fillColor: '#00ffcc', fillOpacity: 1, radius: 8, weight: 3 }).addTo(map).bindPopup("您的位置");
             userMarker._path.classList.add("pulse-marker");
 
@@ -364,7 +367,6 @@
             }
             updateHUD(false, 999);
         }
-
         function handleGPSError(err) {
             console.warn("GPS Error:", err);
             if(GAME_MODE === 'GPS') document.getElementById('hud-desc').innerText = "定位訊號微弱 (請到戶外)";
