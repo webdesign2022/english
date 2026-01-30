@@ -300,27 +300,27 @@
             updateHUD(false, 0); 
         }
 
-     function initMap() {
+    function initMap() {
             // --- 1. 定義活動區域 ---
             const parkLatLngs = PARK_BOUNDS.map(pt => L.latLng(pt[0], pt[1]));
             const parkBoundsObj = L.latLngBounds(parkLatLngs);
             
-            // --- 2. 關鍵修正：計算「可視範圍」邊界 (MaxBounds) ---
-            // 我們必須把「鎖定範圍」放得夠大，地圖才移得動
-            // pad(1.0) 代表把邊界往外擴張 100%，給地圖足夠的緩衝空間
-            const viewBounds = parkBoundsObj.pad(1.0); 
+            // --- 2. 關鍵修正 A：極大化活動邊界 (MaxBounds) ---
+            // 之前的 padding(0.5) 或 (1.0) 可能太小，導致地圖被「卡住」無法上移
+            // 這裡改成 pad(5.0)，給地圖極大的空間去移動，防止撞牆
+            const viewBounds = parkBoundsObj.pad(4.0); 
 
             // --- 3. 初始化地圖 ---
-            // 如果有設定站點，優先以第一站為中心，否則用區域中心
+            // 優先以第一站為中心
             const centerLat = STATIONS[0] ? STATIONS[0].lat : parkBoundsObj.getCenter().lat;
             const centerLng = STATIONS[0] ? STATIONS[0].lng : parkBoundsObj.getCenter().lng;
 
             map = L.map('map', {
                 center: [centerLat, centerLng],
                 zoom: 16, 
-                minZoom: 15,
-                maxBounds: viewBounds, // 設定較寬鬆的邊界
-                maxBoundsViscosity: 0.5,
+                minZoom: 14, // 允許稍微縮更小一點，避免框框太大塞不下
+                maxBounds: viewBounds, // 使用超大邊界
+                maxBoundsViscosity: 0.2, // 降低回彈阻力，手感更滑順
                 zoomControl: false 
             });
 
@@ -329,7 +329,7 @@
             }).addTo(map);
 
             // --- 4. 繪製遮罩與亮區 ---
-            // 黑色遮罩 (挖洞)
+            // 黑色遮罩
             const worldCoords = [[-90, -180], [90, -180], [90, 180], [-90, 180]];
             L.polygon([worldCoords, PARK_BOUNDS], { 
                 color: 'transparent', 
@@ -347,16 +347,22 @@
                 dashArray: '10, 10' 
             }).addTo(map);
 
-            // --- 5. 關鍵修正：強制將地圖重心上移 ---
-            // 計算螢幕高度的 55%
-            const bottomPadding = window.innerHeight * 0.55; 
+            // --- 5. 關鍵修正 B：強制將地圖重心頂到最上方 ---
+            // 計算螢幕高度的 65% (也就是把下半部 2/3 都當作禁區)
+            const bottomPadding = window.innerHeight * 0.65; 
 
-            // 告訴地圖：下方 55% 的區域被遮住了，請把框框塞在剩下的上方空間
             map.fitBounds(parkBoundsObj, { 
-                paddingTopLeft: [20, 50],     // 上方保留一點點空間
-                paddingBottomRight: [20, bottomPadding], // 下方保留巨大空間
-                animate: false // 關閉動畫，讓它一開啟就定位好
+                paddingTopLeft: [20, 80],     // 上方：留一點點空隙 (避免貼頂)
+                paddingBottomRight: [20, bottomPadding], // 下方：留巨大空隙 (強迫上移)
+                animate: false 
             });
+            
+            // 補強措施：如果 fitBounds 算完還是不夠高，我們手動再往南平移一點點 (把視角往北推)
+            // 這樣可以確保框框絕對不會被壓在下面
+            setTimeout(() => {
+                map.panBy([0, window.innerHeight * 0.1]); 
+            }, 100);
+
 
             // --- 6. 玩家定位點 ---
             userMarker = L.circleMarker([0,0], { color: '#fff', fillColor: '#00ffcc', fillOpacity: 1, radius: 8, weight: 3 }).addTo(map).bindPopup("您的位置");
