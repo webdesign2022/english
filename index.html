@@ -141,7 +141,7 @@
 
     <div class="hud-panel" id="hud-panel">
         <div class="mini-bib" id="mini-bib-container">
-            <img src="static/template.jpg" id="mini-img" onerror="this.src='static/template.jpg'">
+            <img src="/static/template.jpg" id="mini-img" onerror="this.src='/static/template.jpg'">
         </div>
         <div class="status-title" id="hud-title">系統連線中...</div>
         <div class="status-desc" id="hud-desc">等待衛星定位</div>
@@ -162,7 +162,7 @@
         <div class="final-card">
             <h2 style="color:#00ffcc; margin:0 0 10px 0;">🎉 恭喜完賽！</h2>
             <p style="color:#aaa; font-size:0.9rem; margin-bottom:20px;">請工作人員協助拍攝照片</p>
-            <div class="big-bib"><img src="static/template.jpg" id="big-img"></div>
+            <div class="big-bib"><img src="/static/template.jpg" id="big-img"></div>
             <div id="final-form">
                 <input type="text" id="final-text" class="input-box" placeholder="輸入您的完賽宣言" maxlength="12">
                 <label for="final-photo" class="btn active" style="margin-bottom:10px; background:#333; color:#fff; border:1px solid #555;">📷 開啟相機 / 上傳照片</label>
@@ -188,32 +188,32 @@
         // 1. 站點設定 (包含 GPS 座標與 雨天 QR 題目)
         const STATIONS = [
             { 
-                lat: 24.9974, lng: 121.4600, name: "第 1 站：忠孝圖書館", hint: "前往忠孝圖書官", 
+                lat: 25.0405, lng: 121.4485, name: "第 1 站：景觀湖", hint: "前往景觀湖", 
                 qrCode: "STATION_1", // 雨天掃碼內容
                 question: "新莊體育園區的景觀湖，主要功能除了景觀還有什麼？", 
                 answer: "滯洪", // 雨天答案關鍵字
-                nextHint: "太棒了！前往【板橋國慶郵局】" 
+                nextHint: "太棒了！前往【林蔭大道】" 
             },
             { 
-                lat: 24.9959, lng: 121.4613, name: "第 2 站：板橋國慶局", hint: "前往國慶郵局", 
+                lat: 25.0415, lng: 121.4495, name: "第 2 站：林蔭大道", hint: "前往林蔭大道", 
                 qrCode: "STATION_2", 
                 question: "2026 新北運動博覽會的主題色系是什麼？", 
                 answer: "黑", 
-                nextHint: "前往【大鎮江山】" 
+                nextHint: "前往【陽光草坪】" 
             },
             { 
-                lat: 24.9963, lng: 121.4624, name: "第 3 站：大鎮江山", hint: "前往大鎮江山", 
+                lat: 25.0425, lng: 121.4505, name: "第 3 站：陽光草坪", hint: "前往陽光草坪", 
                 qrCode: "STATION_3", 
                 question: "請問要在哪裡領取完賽證明？", 
                 answer: "體育館", 
-                nextHint: "前往【大鎮江山】內" 
+                nextHint: "前往【新莊體育館】內" 
             },
-       //     { 
-     //           lat: 25.0435, lng: 121.4515, name: "終點站：體育館服務台", hint: "請進入體育館內", 
-      //          qrCode: "FINISH", 
-      //          question: "無需回答", answer: "any", 
-     //           nextHint: "完賽！" 
-    //        }
+            { 
+                lat: 25.0435, lng: 121.4515, name: "終點站：體育館服務台", hint: "請進入體育館內", 
+                qrCode: "FINISH", 
+                question: "無需回答", answer: "any", 
+                nextHint: "完賽！" 
+            }
         ];
 
         // 2. 獎品庫存設定 (系統自動計算機率)
@@ -234,10 +234,10 @@
 
         // 3. 活動地圖範圍 (修改這裡可調整亮區)
         const PARK_BOUNDS = [
-            [24.998508, 121.459243], // 左上
-            [24.998999, 121.464165], // 右上
-            [24.995784, 121.464391], // 右下
-            [24.995630, 121.459607]  // 左下
+            [25.0460, 121.4450], // 左上
+            [25.0460, 121.4550], // 右上
+            [25.0380, 121.4550], // 右下
+            [25.0380, 121.4450]  // 左下
         ];
 
         // ==========================================
@@ -300,7 +300,7 @@
             updateHUD(false, 0); 
         }
 
-        function initMap() {
+      function initMap() {
             // --- 1. 自動計算地圖邊界 (關鍵修正) ---
             // 將陣列轉為 Leaflet 座標物件
             const parkLatLngs = PARK_BOUNDS.map(pt => L.latLng(pt[0], pt[1]));
@@ -346,8 +346,14 @@
                 dashArray: '10, 10' 
             }).addTo(map);
 
-            // 自動將視角縮放到活動區域，並保留底部 HUD 空間
-            map.fitBounds(parkBoundsObj, { paddingBottomRight: [0, 300] });
+         // --- 修改處：讓地圖重心上移 ---
+            // 我們告訴地圖：畫面下方 45% 的高度是「被擋住的區域」，不要把東西放那邊
+            const paddingOffset = window.innerHeight * 0.45; 
+
+            map.fitBounds(parkBoundsObj, { 
+                paddingTopLeft: [0, 50],    // 上方留一點點空隙 (50px)
+                paddingBottomRight: [0, paddingOffset] // 下方留一大塊空隙 (將地圖往上頂)
+            });
 
             // --- 4. 玩家定位點 ---
             userMarker = L.circleMarker([0,0], { color: '#fff', fillColor: '#00ffcc', fillOpacity: 1, radius: 8, weight: 3 }).addTo(map).bindPopup("您的位置");
@@ -358,6 +364,7 @@
             }
             updateHUD(false, 999);
         }
+
         function handleGPSError(err) {
             console.warn("GPS Error:", err);
             if(GAME_MODE === 'GPS') document.getElementById('hud-desc').innerText = "定位訊號微弱 (請到戶外)";
@@ -519,8 +526,8 @@
         function showFinalStage() {
             document.getElementById('overlay-final').style.display = 'flex';
             const imgEl = document.getElementById('big-img');
-            imgEl.src = `static/template_${state.theme}.jpg`;
-            imgEl.onerror = function() { this.src = 'static/template.jpg'; };
+            imgEl.src = `/static/template_${state.theme}.jpg`;
+            imgEl.onerror = function() { this.src = '/static/template.jpg'; };
         }
 
         function handlePhotoSelect(input) {
@@ -557,8 +564,8 @@
             if(s >= STATIONS.length) visualStep = 3; else if(s >= 3) visualStep = 2; 
             document.getElementById('mini-bib-container').className = `mini-bib theme-${state.theme} step-${visualStep}`;
             const miniImg = document.getElementById('mini-img');
-            miniImg.src = (s >= STATIONS.length) ? `static/template_${state.theme}.jpg` : 'static/template.jpg';
-            miniImg.onerror = function(){ this.src = 'static/template.jpg'; };
+            miniImg.src = (s >= STATIONS.length) ? `/static/template_${state.theme}.jpg` : '/static/template.jpg';
+            miniImg.onerror = function(){ this.src = '/static/template.jpg'; };
         }
 
         function getDistance(lat1, lon1, lat2, lon2) {
@@ -602,12 +609,43 @@
             
             alert(`⚡ [測試] 已瞬移至：${target.name}`);
         }
+// ==========================================
+        // 💡 螢幕恆亮模組 (Wake Lock API)
+        // ==========================================
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                // 只有在瀏覽器支援且網頁在最上層時才運作
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('✅ 螢幕恆亮模式已啟動');
+                    
+                    // 如果使用者切換視窗，Wake Lock 會失效，回來時要重新申請
+                    wakeLock.addEventListener('release', () => {
+                        console.log('螢幕恆亮已釋放');
+                    });
+                }
+            } catch (err) {
+                console.error(`無法啟動恆亮模式: ${err.name}, ${err.message}`);
+            }
+        }
+
+        // 監聽頁面可見度變化 (切換 App 回來後重新啟動恆亮)
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+
+        // ⚠️ 重要：瀏覽器規定必須要「使用者點擊螢幕」後才能啟動恆亮
+        // 所以我們綁定在第一次點擊任意處時觸發
+        document.addEventListener('click', requestWakeLock, { once: true });
+        document.addEventListener('touchstart', requestWakeLock, { once: true });
+
+
 
         window.onload = initData;
     </script>
 </body>
-
 </html>
-
-
-
