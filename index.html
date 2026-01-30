@@ -301,13 +301,25 @@
         }
 
         function initMap() {
-            // 擴大視野範圍
-            const viewBounds = L.latLngBounds(L.latLng(25.0320, 121.4400), L.latLng(25.0500, 121.4600));
+            // --- 1. 自動計算地圖邊界 (關鍵修正) ---
+            // 將陣列轉為 Leaflet 座標物件
+            const parkLatLngs = PARK_BOUNDS.map(pt => L.latLng(pt[0], pt[1]));
+            const parkBoundsObj = L.latLngBounds(parkLatLngs);
+            
+            // 自動往外擴張 0.5 倍 (50%) 作為視角限制 (Invisible Wall)
+            // 這樣不管您把活動設在哪，地圖邊界都會自動跟著變！
+            const viewBounds = parkBoundsObj.pad(0.5); 
+
+            // --- 2. 初始化地圖 ---
+            // 檢查 STATIONS[0] 是否有設定，若無則自動使用活動區域中心
+            const centerLat = STATIONS[0] ? STATIONS[0].lat : parkBoundsObj.getCenter().lat;
+            const centerLng = STATIONS[0] ? STATIONS[0].lng : parkBoundsObj.getCenter().lng;
 
             map = L.map('map', {
-                center: [STATIONS[0].lat, STATIONS[0].lng],
+                center: [centerLat, centerLng],
                 zoom: 16, minZoom: 15,
-                maxBounds: viewBounds, maxBoundsViscosity: 0.5,
+                maxBounds: viewBounds, // 使用自動計算出來的邊界
+                maxBoundsViscosity: 0.5,
                 zoomControl: false 
             });
 
@@ -315,13 +327,29 @@
                 attribution: '&copy; OpenStreetMap', subdomains: 'abcd', maxZoom: 20
             }).addTo(map);
 
-            // 繪製遮罩與亮區
+            // --- 3. 繪製遮罩與亮區 ---
+            // 黑色遮罩 (挖空的洞必須跟 PARK_BOUNDS 一樣)
             const worldCoords = [[-90, -180], [90, -180], [90, 180], [-90, 180]];
-            L.polygon([worldCoords, PARK_BOUNDS], { color: 'transparent', fillColor: '#000', fillOpacity: 0.8, className: 'mask-overlay' }).addTo(map);
-            L.polygon(PARK_BOUNDS, { color: '#00ffcc', weight: 3, fillColor: 'transparent', fillOpacity: 0, dashArray: '10, 10' }).addTo(map);
+            L.polygon([worldCoords, PARK_BOUNDS], { 
+                color: 'transparent', 
+                fillColor: '#000', 
+                fillOpacity: 0.8, 
+                className: 'mask-overlay' 
+            }).addTo(map);
 
-            map.fitBounds(L.latLngBounds(PARK_BOUNDS), { paddingBottomRight: [0, 300] });
+            // 亮綠色邊框
+            L.polygon(PARK_BOUNDS, { 
+                color: '#00ffcc', 
+                weight: 3, 
+                fillColor: 'transparent', 
+                fillOpacity: 0, 
+                dashArray: '10, 10' 
+            }).addTo(map);
 
+            // 自動將視角縮放到活動區域，並保留底部 HUD 空間
+            map.fitBounds(parkBoundsObj, { paddingBottomRight: [0, 300] });
+
+            // --- 4. 玩家定位點 ---
             userMarker = L.circleMarker([0,0], { color: '#fff', fillColor: '#00ffcc', fillOpacity: 1, radius: 8, weight: 3 }).addTo(map).bindPopup("您的位置");
             userMarker._path.classList.add("pulse-marker");
 
@@ -330,7 +358,6 @@
             }
             updateHUD(false, 999);
         }
-
         function handleGPSError(err) {
             console.warn("GPS Error:", err);
             if(GAME_MODE === 'GPS') document.getElementById('hud-desc').innerText = "定位訊號微弱 (請到戶外)";
@@ -581,4 +608,5 @@
 </body>
 
 </html>
+
 
