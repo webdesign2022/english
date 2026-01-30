@@ -141,7 +141,7 @@
 
     <div class="hud-panel" id="hud-panel">
         <div class="mini-bib" id="mini-bib-container">
-            <img src="/static/template.jpg" id="mini-img" onerror="this.src='/static/template.jpg'">
+            <img src="static/template.jpg" id="mini-img" onerror="this.src='static/template.jpg'">
         </div>
         <div class="status-title" id="hud-title">系統連線中...</div>
         <div class="status-desc" id="hud-desc">等待衛星定位</div>
@@ -162,7 +162,7 @@
         <div class="final-card">
             <h2 style="color:#00ffcc; margin:0 0 10px 0;">🎉 恭喜完賽！</h2>
             <p style="color:#aaa; font-size:0.9rem; margin-bottom:20px;">請工作人員協助拍攝照片</p>
-            <div class="big-bib"><img src="/static/template.jpg" id="big-img"></div>
+            <div class="big-bib"><img src="static/template.jpg" id="big-img"></div>
             <div id="final-form">
                 <input type="text" id="final-text" class="input-box" placeholder="輸入您的完賽宣言" maxlength="12">
                 <label for="final-photo" class="btn active" style="margin-bottom:10px; background:#333; color:#fff; border:1px solid #555;">📷 開啟相機 / 上傳照片</label>
@@ -492,8 +492,8 @@
         function showFinalStage() {
             document.getElementById('overlay-final').style.display = 'flex';
             const imgEl = document.getElementById('big-img');
-            imgEl.src = `/static/template_${state.theme}.jpg`;
-            imgEl.onerror = function() { this.src = '/static/template.jpg'; };
+            imgEl.src = `static/template_${state.theme}.jpg`;
+            imgEl.onerror = function() { this.src = 'static/template.jpg'; };
         }
 
         function handlePhotoSelect(input) {
@@ -530,8 +530,8 @@
             if(s >= STATIONS.length) visualStep = 3; else if(s >= 3) visualStep = 2; 
             document.getElementById('mini-bib-container').className = `mini-bib theme-${state.theme} step-${visualStep}`;
             const miniImg = document.getElementById('mini-img');
-            miniImg.src = (s >= STATIONS.length) ? `/static/template_${state.theme}.jpg` : '/static/template.jpg';
-            miniImg.onerror = function(){ this.src = '/static/template.jpg'; };
+            miniImg.src = (s >= STATIONS.length) ? `static/template_${state.theme}.jpg` : 'static/template.jpg';
+            miniImg.onerror = function(){ this.src = 'static/template.jpg'; };
         }
 
         function getDistance(lat1, lon1, lat2, lon2) {
@@ -579,4 +579,5 @@
         window.onload = initData;
     </script>
 </body>
+
 </html>
