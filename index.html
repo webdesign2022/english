@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>沖繩 2026 景點美食大調查 (即時票數版)</title>
+    <title>沖繩 2026 景點美食大調查 (分區結果版)</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -49,10 +49,11 @@
         .btn-submit:hover { background: #e65a28; }
         
         .results-box { margin-top: 60px; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-        .bar-container { margin-bottom: 20px; }
-        .bar-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; font-size: 1rem; color: #444; }
-        .bar-bg { background: #e0e0e0; height: 22px; border-radius: 11px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
-        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #4facfe); width: 0%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); border-radius: 11px; }
+        .result-region-title { margin-top: 25px; margin-bottom: 15px; font-size: 1.3rem; color: var(--primary); border-bottom: 2px dashed #bbdefb; padding-bottom: 8px; }
+        .bar-container { margin-bottom: 15px; }
+        .bar-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; font-size: 0.95rem; color: #444; }
+        .bar-bg { background: #e0e0e0; height: 18px; border-radius: 9px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #4facfe); width: 0%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); border-radius: 9px; }
 
         /* Modal (彈出視窗) */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
@@ -131,7 +132,7 @@
 
 <script>
     // --- 🔹 Firebase Config (請替換為你的金鑰) 🔹 ---
-  const firebaseConfig = {
+const firebaseConfig = {
 
   apiKey: "AIzaSyB_gdGEcvlcCxy94vhVlhUIZfQWuf2XToc",
 
@@ -182,7 +183,6 @@
             const card = document.createElement('div');
             card.className = 'spot-card';
             
-            // 決定標籤
             let tagsHtml = '';
             if (item.type === 'land') {
                 tagsHtml += '<span class="tag tag-nonwater">🚶 不下水行程</span>';
@@ -193,7 +193,6 @@
                 tagsHtml += '<span class="tag tag-new">🔥 達人強力推薦</span>';
             }
 
-            // 新增了 id="badge-${item.id}" 的票數徽章
             card.innerHTML = `
                 <div class="spot-card-top" onclick="toggleCheckbox(event, '${item.id}')">
                     <input type="checkbox" id="cb-${item.id}" name="${item.area}" value="${item.id}" onchange="checkLimit('${item.area}')">
@@ -205,7 +204,7 @@
             `;
             document.getElementById(`grid-${item.area}`).appendChild(card);
         });
-        syncResults(); // 同步 Firebase 數據
+        syncResults();
     }
 
     // 點擊卡片頂部也可勾選
@@ -233,7 +232,6 @@
     function showInfo(e, id) {
         e.stopPropagation(); 
         const spot = attractions.find(a => a.id === id);
-        
         document.getElementById('m-title').innerText = spot.name;
         document.getElementById('m-desc').innerText = spot.desc;
         document.getElementById('m-food').innerText = spot.food;
@@ -245,7 +243,6 @@
         } else {
             linkBtn.style.display = 'none';
         }
-        
         document.getElementById('infoModal').style.display = 'flex';
     }
 
@@ -257,7 +254,6 @@
     function submitVotes() {
         const areas = ['north', 'central', 'south'];
         let valid = true;
-        
         areas.forEach(a => {
             const count = document.querySelectorAll(`input[name="${a}"]:checked`).length;
             if(count < 2) { 
@@ -265,7 +261,6 @@
                 valid = false; 
             }
         });
-        
         if(!valid) return;
 
         document.getElementById('submitBtn').disabled = true;
@@ -282,41 +277,59 @@
         }, 800);
     }
 
-    // 即時同步圖表與卡片票數徽章
+    // 即時同步圖表 (已更新為分區排序)
     function syncResults() {
         db.ref('votes').on('value', (snap) => {
             const data = snap.val() || {};
             const container = document.getElementById('live-results');
             container.innerHTML = '';
             
-            // 排序給下方圖表使用
-            const sorted = [...attractions].sort((a, b) => (data[b.id] || 0) - (data[a.id] || 0));
+            // 找出全域最高票，讓各區的進度條長度標準一致
             const max = Math.max(...Object.values(data), 1);
 
-            // 更新下方圖表
-            sorted.forEach(spot => {
-                const count = data[spot.id] || 0;
-                const perc = (count / max) * 100;
-                container.innerHTML += `
-                    <div class="bar-container">
-                        <div class="bar-label">
-                            <span>${spot.name} <span style="font-size:0.8rem; color:#888;">(${spot.type === 'land' ? '陸上' : '水上'})</span></span> 
-                            <span style="color:var(--primary);">${count} 票</span>
+            // 定義要顯示的三個區域
+            const regions = [
+                { id: 'north', title: '📍 北部地區票選結果' },
+                { id: 'central', title: '📍 中部地區票選結果' },
+                { id: 'south', title: '📍 南部地區票選結果' }
+            ];
+
+            regions.forEach(region => {
+                // 將屬於該區的景點拉出來，並依據票數由高到低排序
+                const sortedAreaSpots = attractions
+                    .filter(spot => spot.area === region.id)
+                    .sort((a, b) => (data[b.id] || 0) - (data[a.id] || 0));
+
+                // 畫出該區的標題
+                let regionHtml = `<h3 class="result-region-title">${region.title}</h3>`;
+
+                // 畫出該區排序後的景點進度條
+                sortedAreaSpots.forEach(spot => {
+                    const count = data[spot.id] || 0;
+                    const perc = (count / max) * 100;
+                    regionHtml += `
+                        <div class="bar-container">
+                            <div class="bar-label">
+                                <span>${spot.name} <span style="font-size:0.8rem; color:#888;">(${spot.type === 'land' ? '陸上' : '水上'})</span></span> 
+                                <span style="color:var(--primary);">${count} 票</span>
+                            </div>
+                            <div class="bar-bg">
+                                <div class="bar-fill" style="width:${perc}%"></div>
+                            </div>
                         </div>
-                        <div class="bar-bg">
-                            <div class="bar-fill" style="width:${perc}%"></div>
-                        </div>
-                    </div>
-                `;
+                    `;
+                });
+
+                // 將該區塊加入到畫面上
+                container.innerHTML += regionHtml;
             });
 
-            // 更新每個卡片上的票數徽章
+            // 同步更新每個卡片上的票數徽章
             attractions.forEach(spot => {
                 const count = data[spot.id] || 0;
                 const badge = document.getElementById(`badge-${spot.id}`);
                 if (badge) {
                     badge.innerText = `${count} 票`;
-                    // 如果有得票，就加上醒目的顏色樣式
                     if (count > 0) {
                         badge.classList.add('has-votes');
                     } else {
@@ -327,7 +340,6 @@
         });
     }
 
-    // 點擊 Modal 外部自動關閉
     window.onclick = function(event) {
         const modal = document.getElementById('infoModal');
         if (event.target == modal) { closeModal(); }
