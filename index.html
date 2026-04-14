@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>沖繩 2026 景點美食大調查 (進階完整版)</title>
+    <title>沖繩 2026 景點美食大調查 (即時票數版)</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
@@ -29,6 +29,11 @@
         .spot-card-top { display: flex; align-items: center; margin-bottom: 12px; }
         .spot-card input[type="checkbox"] { transform: scale(1.4); margin-right: 15px; cursor: pointer; accent-color: var(--accent); }
         .spot-card h4 { margin: 0; color: #222; font-size: 1.2rem; flex-grow: 1; display: flex; align-items: center; gap: 8px; }
+        
+        /* 票數徽章樣式 */
+        .vote-badge { background: #eeeeee; color: #888888; font-size: 0.85rem; padding: 3px 10px; border-radius: 12px; font-weight: bold; margin-right: 8px; transition: 0.3s; }
+        .vote-badge.has-votes { background: #ffc107; color: #fff; box-shadow: 0 2px 5px rgba(255, 193, 7, 0.4); }
+
         .info-icon { background: #f0f0f0; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; color: #555; transition: 0.3s; }
         .spot-card:hover .info-icon { background: var(--primary); color: white; }
         
@@ -49,7 +54,7 @@
         .bar-bg { background: #e0e0e0; height: 22px; border-radius: 11px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
         .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #4facfe); width: 0%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); border-radius: 11px; }
 
-        /* Modal (彈出視窗) 樣式強化 */
+        /* Modal (彈出視窗) */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-content { background: white; padding: 35px; border-radius: 16px; max-width: 550px; width: 90%; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -76,7 +81,7 @@
 <div class="container">
     <div class="map-box">
         <a href="https://blog.settour.com.tw/world/okinawa-travel/" target="_blank" title="點擊查看東南旅遊詳細網誌">
-            <img src="image_0.png" class="map-img" alt="沖繩人氣景點圖">
+            <img src="https://blog.settour.com.tw/wp-content/uploads/2024/02/%E6%B2%96%E7%B9%A9%E6%99%AF%E9%BB%9E%E5%9C%B0%E5%9C%96.jpg" class="map-img" alt="沖繩人氣景點圖">
         </a>
         <div class="map-hint">👆 點擊地圖可前往「東南旅遊」查看全島圖文攻略</div>
         
@@ -126,20 +131,27 @@
 
 <script>
     // --- 🔹 Firebase Config (請替換為你的金鑰) 🔹 ---
-const firebaseConfig = {
-  apiKey: "AIzaSyB_gdGEcvlcCxy94vhVlhUIZfQWuf2XToc",
-  authDomain: "okinawa-vote.firebaseapp.com",
-  databaseURL: "https://okinawa-vote-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "okinawa-vote",
-  storageBucket: "okinawa-vote.firebasestorage.app",
-  messagingSenderId: "38752066053",
-  appId: "1:38752066053:web:d50f2976a135e1e517da6c"
-};
+  const firebaseConfig = {
 
+  apiKey: "AIzaSyB_gdGEcvlcCxy94vhVlhUIZfQWuf2XToc",
+
+  authDomain: "okinawa-vote.firebaseapp.com",
+
+  databaseURL: "https://okinawa-vote-default-rtdb.asia-southeast1.firebasedatabase.app",
+
+  projectId: "okinawa-vote",
+
+  storageBucket: "okinawa-vote.firebasestorage.app",
+
+  messagingSenderId: "38752066053",
+
+  appId: "1:38752066053:web:d50f2976a135e1e517da6c"
+
+};
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // --- 達人推薦景點清單 (含美食與專屬連結) ---
+    // --- 達人推薦景點清單 ---
     const attractions = [
         // 【北部】
         { id: 'n1', area: 'north', name: '美麗海水族館', desc: '世界級黑潮之海，室內冷氣充足，完全不下水也能看大鯨鯊與鬼蝠魟。', type: 'land', food: '「岸本食堂」百年沖繩麵、「燒肉本部牧場」頂級和牛。' },
@@ -147,14 +159,14 @@ const firebaseConfig = {
         { id: 'n3', area: 'north', name: '名護鳳梨園', desc: '搭乘全自動鳳梨車遊園，欣賞熱帶植物，適合全家輕鬆不費力。', type: 'land', food: '園區限定「鳳梨冰淇淋」、「百年古家 大家 (Ufuya)」阿古豬火鍋。' },
         { id: 'n4', area: 'north', name: '水納島 (純淨離島)', desc: '搭船15分即達！水質透明度沖繩第一，是浮潛與海底漫步的天堂。', type: 'water', special: 'new', food: '海灘夏日 BBQ 烤肉、充滿海島風情的消暑現刨冰。', link: 'https://visitokinawajapan.com/zh-hant/destinations/okinawa-main-island/northern-okinawa-main-island/minna-island-okinawa-main-island/' },
         { id: 'n5', area: 'north', name: '瀨底海灘', desc: '開車過橋即可抵達，擁有迷宮般的珊瑚礁，北部最受歡迎的親子玩水熱點。', type: 'water', special: 'new', food: '網美店「Ringo Cafe」法式馬卡龍、「Fuu Cafe」森林系咖啡。', link: 'https://visitokinawajapan.com/zh-hant/destinations/okinawa-main-island/northern-okinawa-main-island/sesoko-island/' },
-        { id: 'n6', area: 'north', name: 'Junglia 叢林樂園', desc: '環球影城團隊打造，全新開幕的亞熱帶恐龍與大自然探險主題樂園！', type: 'land', special: 'new', food: '樂園內恐龍主題特色餐廳與熱帶雨林輕食。', link: 'https://natasha-traveler.tw/okinawa-junglia-review/' },
+        { id: 'n6', area: 'north', name: 'Junglia 叢林樂園', desc: '環球影城團隊打造，全新開幕的亞熱帶恐龍與大自然探險主題樂園！', type: 'land', special: 'new', food: '樂園內恐龍主題特色餐廳與熱帶雨林輕食。', link: 'https://junglia.jp/' },
         
         // 【中部】
         { id: 'c1', area: 'central', name: '美國村', desc: '充滿美式西海岸風情，特色小店林立，看夕陽與逛街的最佳去處。', type: 'land', food: '「豬肉蛋飯糰 (北谷店)」、「King Tacos」塔可飯、海景咖啡廳。' },
         { id: 'c2', area: 'central', name: '萬座毛', desc: '天然的象鼻岩奇景，散步步道設計完善，能輕鬆欣賞無敵海景。', type: 'land', food: '「元祖海葡萄蓋飯」、恩納村周邊現撈海鮮定食。' },
-        { id: 'c3', area: 'central', name: '青之洞窟 (真榮田岬)', desc: '世界唯二的藍洞景觀！陽光折射下散發神秘藍光，潛水浮潛聖地。', type: 'water', food: '超人氣「琉球之牛」頂級和牛燒肉、海景刨冰店。', link: 'https://lailai-web.com/maeda-cape/' },
+        { id: 'c3', area: 'central', name: '青之洞窟 (真榮田岬)', desc: '世界唯二的藍洞景觀！陽光折射下散發神秘藍光，潛水浮潛聖地。', type: 'water', food: '超人氣「琉球之牛」頂級和牛燒肉、海景刨冰店。' },
         { id: 'c4', area: 'central', name: '永旺夢樂城 Rycom', desc: '沖繩最大巨型室內商場，附有超大水族箱，下雨或大太陽的完美備案。', type: 'land', food: '商場內「敘敘苑燒肉」、Blue Seal 冰淇淋。' },
-        { id: 'c5', area: 'central', name: '萬座海中公園', desc: '不下水可搭玻璃底船看魚；下水則有超大型海上充氣樂園可以瘋狂玩水。', type: 'water', special: 'new', food: 'ANA洲際度假酒店內「海景英式下午茶」。', link: 'https://www.instagram.com/reel/C9hefOBPrDx/' },
+        { id: 'c5', area: 'central', name: '萬座海中公園', desc: '不下水可搭玻璃底船看魚；下水則有超大型海上充氣樂園可以瘋狂玩水。', type: 'water', special: 'new', food: 'ANA洲際度假酒店內「海景英式下午茶」。', link: 'https://visitokinawajapan.com/zh-hant/destinations/okinawa-main-island/central-okinawa-main-island/' },
 
         // 【南部】
         { id: 's1', area: 'south', name: '國際通', desc: '被譽為「奇蹟的一英里」，沖繩最熱鬧的商店街，買伴手禮必來。', type: 'land', food: '「傑克牛排館」、第一牧志公設市場現撈海鮮、暖暮拉麵。' },
@@ -181,10 +193,12 @@ const firebaseConfig = {
                 tagsHtml += '<span class="tag tag-new">🔥 達人強力推薦</span>';
             }
 
+            // 新增了 id="badge-${item.id}" 的票數徽章
             card.innerHTML = `
                 <div class="spot-card-top" onclick="toggleCheckbox(event, '${item.id}')">
                     <input type="checkbox" id="cb-${item.id}" name="${item.area}" value="${item.id}" onchange="checkLimit('${item.area}')">
                     <h4>${item.name}</h4>
+                    <span id="badge-${item.id}" class="vote-badge">0 票</span>
                     <span class="info-icon" onclick="showInfo(event, '${item.id}')">i</span>
                 </div>
                 <div class="tag-group">${tagsHtml}</div>
@@ -194,7 +208,7 @@ const firebaseConfig = {
         syncResults(); // 同步 Firebase 數據
     }
 
-    // 點擊卡片頂部也可勾選 (優化體驗)
+    // 點擊卡片頂部也可勾選
     function toggleCheckbox(e, id) {
         if(e.target.tagName !== 'INPUT' && !e.target.classList.contains('info-icon')) {
             const cb = document.getElementById(`cb-${id}`);
@@ -205,7 +219,7 @@ const firebaseConfig = {
         }
     }
 
-    // 限制每區只能選 2-3 個
+    // 限制每區選 2-3 個
     function checkLimit(area) {
         const checked = document.querySelectorAll(`input[name="${area}"]:checked`);
         document.querySelectorAll(`input[name="${area}"]`).forEach(cb => {
@@ -215,9 +229,9 @@ const firebaseConfig = {
         });
     }
 
-    // 顯示詳細資訊 Modal (帶美食與連結)
+    // 顯示 Modal
     function showInfo(e, id) {
-        e.stopPropagation(); // 阻止觸發 checkbox
+        e.stopPropagation(); 
         const spot = attractions.find(a => a.id === id);
         
         document.getElementById('m-title').innerText = spot.name;
@@ -239,7 +253,7 @@ const firebaseConfig = {
         document.getElementById('infoModal').style.display = 'none';
     }
 
-    // 提交票選到 Firebase
+    // 提交票選
     function submitVotes() {
         const areas = ['north', 'central', 'south'];
         let valid = true;
@@ -263,22 +277,23 @@ const firebaseConfig = {
         });
         
         setTimeout(() => {
-            alert("🎉 投票大成功！下方的圖表已經即時更新您的票數。");
+            alert("🎉 投票大成功！下方的圖表與卡片票數已經即時更新。");
             document.getElementById('submitBtn').innerText = '✅ 已送出';
         }, 800);
     }
 
-    // 即時同步圖表
+    // 即時同步圖表與卡片票數徽章
     function syncResults() {
         db.ref('votes').on('value', (snap) => {
             const data = snap.val() || {};
             const container = document.getElementById('live-results');
             container.innerHTML = '';
             
-            // 排序
+            // 排序給下方圖表使用
             const sorted = [...attractions].sort((a, b) => (data[b.id] || 0) - (data[a.id] || 0));
             const max = Math.max(...Object.values(data), 1);
 
+            // 更新下方圖表
             sorted.forEach(spot => {
                 const count = data[spot.id] || 0;
                 const perc = (count / max) * 100;
@@ -294,6 +309,21 @@ const firebaseConfig = {
                     </div>
                 `;
             });
+
+            // 更新每個卡片上的票數徽章
+            attractions.forEach(spot => {
+                const count = data[spot.id] || 0;
+                const badge = document.getElementById(`badge-${spot.id}`);
+                if (badge) {
+                    badge.innerText = `${count} 票`;
+                    // 如果有得票，就加上醒目的顏色樣式
+                    if (count > 0) {
+                        badge.classList.add('has-votes');
+                    } else {
+                        badge.classList.remove('has-votes');
+                    }
+                }
+            });
         });
     }
 
@@ -303,7 +333,6 @@ const firebaseConfig = {
         if (event.target == modal) { closeModal(); }
     }
 
-    // 啟動
     init();
 </script>
 </body>
